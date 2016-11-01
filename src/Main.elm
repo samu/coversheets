@@ -48,6 +48,7 @@ model =
 type Msg
     = UpdateSender String
     | UpdateReceiver String
+    | UpdatePlugin SimplePlugin.Msg
 
 
 updateCurrentPlugin : Model -> Model
@@ -73,7 +74,8 @@ update msg model =
         UpdateReceiver value ->
             updateCurrentPlugin { model | receiver = value }
 
-
+        UpdatePlugin message ->
+            model
 
 -- VIEW
 
@@ -92,7 +94,7 @@ showCurrentPlugin model =
             Just pluginData ->
                 case pluginData of
                     SimplePlugin data ->
-                        SimplePlugin.view data
+                        App.map UpdatePlugin (SimplePlugin.view data)
 
                     _ ->
                         default

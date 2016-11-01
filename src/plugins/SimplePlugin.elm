@@ -1,4 +1,4 @@
-module SimplePlugin exposing (Model, init, view)
+module SimplePlugin exposing (Model, Msg, init, view)
 import Html exposing (..)
 
 type alias Model =
@@ -22,6 +22,6 @@ update : Msg -> Model -> Model
 update msg model =
     model
 
-view : Model -> Html a
+view : Model -> Html Msg
 view model =
     div [] [ text "this is simple plugin speaking" ]
