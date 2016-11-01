@@ -6,11 +6,21 @@ type alias Model =
     , documentVersion : String
     }
 
+
+type Msg
+    = UpdateDocumentType String
+    | UpdateDocumentVersion String
+
+
 init : Model
 init =
     { documentType = ""
     , documentVersion = ""
     }
+
+update : Msg -> Model -> Model
+update msg model =
+    model
 
 view : Model -> Html a
 view model =
