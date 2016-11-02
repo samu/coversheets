@@ -25,9 +25,11 @@ type Plugin
     = SimplePlugin SimplePlugin.Model
     | MoreAdvancedPlugin MoreAdvancedPlugin.Model
 
+
 type PluginMessage
     = SimplePluginMessage SimplePlugin.Msg
-    | AdvancedPluginMessage
+    | MoreAdvancedPluginMessage MoreAdvancedPlugin.Msg
+
 
 type alias Model =
     { name : String
@@ -48,7 +50,6 @@ model =
 -- UPDATE
 
 
-
 type Msg
     = UpdateSender String
     | UpdateReceiver String
@@ -62,7 +63,8 @@ type Bla a
 
 
 myFunc : Bla abc a sdkfj -> Int
-myFunc a = 1
+myFunc a =
+    1
 
 
 updateCurrentPlugin : Model -> Model
@@ -72,6 +74,9 @@ updateCurrentPlugin model =
             case model.sender ++ model.receiver of
                 "12" ->
                     Just (SimplePlugin SimplePlugin.init)
+
+                "21" ->
+                    Just (MoreAdvancedPlugin MoreAdvancedPlugin.init)
 
                 _ ->
                     Nothing
@@ -91,6 +96,8 @@ update msg model =
         UpdatePlugin message ->
             model
 
+
+
 -- VIEW
 
 
@@ -102,11 +109,10 @@ showCurrentPlugin : Model -> Html Msg
 showCurrentPlugin model =
     let
         default =
-            div [] []
+            div [] [ text "nothing to show, boring :(" ]
 
         tagMessage messageType msg =
             UpdatePlugin (messageType msg)
-
     in
         case model.currentPlugin of
             Just currentPlugin ->
@@ -114,8 +120,8 @@ showCurrentPlugin model =
                     SimplePlugin data ->
                         App.map (tagMessage SimplePluginMessage) (SimplePlugin.view data)
 
-                    _ ->
-                        default
+                    MoreAdvancedPlugin data ->
+                        App.map (tagMessage MoreAdvancedPluginMessage) (MoreAdvancedPlugin.view data)
 
             Nothing ->
                 default
