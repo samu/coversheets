@@ -5,8 +5,8 @@ import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (on)
 import Json.Decode as Json exposing (object1, string, (:=))
-import SimplePlugin
-import MoreAdvancedPlugin
+import Plugins.SimplePlugin as SimplePlugin
+import Plugins.MoreAdvancedPlugin as MoreAdvancedPlugin
 
 
 main =
@@ -21,10 +21,13 @@ main =
 -- MODEL
 
 
-type PluginData
+type Plugin
     = SimplePlugin SimplePlugin.Model
     | MoreAdvancedPlugin MoreAdvancedPlugin.Model
 
+type PluginMessage
+    = SimplePluginMessage SimplePlugin.Msg
+    | AdvancedPluginMessage
 
 type alias Model =
     { name : String
@@ -32,7 +35,7 @@ type alias Model =
     , passwordAgain : String
     , sender : String
     , receiver : String
-    , pluginData : Maybe PluginData
+    , currentPlugin : Maybe Plugin
     }
 
 
@@ -45,16 +48,27 @@ model =
 -- UPDATE
 
 
+
 type Msg
     = UpdateSender String
     | UpdateReceiver String
-    | UpdatePlugin SimplePlugin.Msg
+    | UpdatePlugin PluginMessage
+
+
+type Bla a
+    = One
+    | Two a
+    | Three a Int Int
+
+
+myFunc : Bla abc a sdkfj -> Int
+myFunc a = 1
 
 
 updateCurrentPlugin : Model -> Model
 updateCurrentPlugin model =
     let
-        pluginData =
+        currentPlugin =
             case model.sender ++ model.receiver of
                 "12" ->
                     Just (SimplePlugin SimplePlugin.init)
@@ -62,7 +76,7 @@ updateCurrentPlugin model =
                 _ ->
                     Nothing
     in
-        { model | pluginData = pluginData }
+        { model | currentPlugin = currentPlugin }
 
 
 update : Msg -> Model -> Model
@@ -89,12 +103,16 @@ showCurrentPlugin model =
     let
         default =
             div [] []
+
+        tagMessage messageType msg =
+            UpdatePlugin (messageType msg)
+
     in
-        case model.pluginData of
-            Just pluginData ->
-                case pluginData of
+        case model.currentPlugin of
+            Just currentPlugin ->
+                case currentPlugin of
                     SimplePlugin data ->
-                        App.map UpdatePlugin (SimplePlugin.view data)
+                        App.map (tagMessage SimplePluginMessage) (SimplePlugin.view data)
 
                     _ ->
                         default

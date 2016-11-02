@@ -1,4 +1,4 @@
-module MoreAdvancedPlugin exposing (Model)
+module Plugins.MoreAdvancedPlugin exposing (Model)
 
 
 type alias Model =

@@ -1,4 +1,4 @@
-module SimplePlugin exposing (Model, Msg, init, view)
+module Plugins.SimplePlugin exposing (Model, Msg, init, view)
 import Html exposing (..)
 
 type alias Model =
