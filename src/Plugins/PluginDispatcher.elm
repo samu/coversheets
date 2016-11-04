@@ -34,6 +34,21 @@ tagMessage parentMsg pluginMsg actualPluginMsg =
     parentMsg (pluginMsg actualPluginMsg)
 
 
+update : PluginMessage -> Plugin -> Plugin
+update msg plugin =
+    case msg of
+        MoreAdvancedPluginMessage msg ->
+            case plugin of
+                MoreAdvancedPlugin model ->
+                    MoreAdvancedPlugin (MoreAdvancedPlugin.update msg model)
+
+                _ ->
+                    plugin
+
+        _ ->
+            plugin
+
+
 view : (PluginMessage -> a) -> Plugin -> Html a
 view parentMsg plugin =
     case plugin of

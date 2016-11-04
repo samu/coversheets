@@ -66,7 +66,16 @@ update msg model =
             updateCurrentPlugin { model | receiver = value }
 
         UpdatePlugin message ->
-            model
+            let
+                plugin =
+                    case model.currentPlugin of
+                        Just model ->
+                            Just (PluginDispatcher.update message model)
+
+                        Nothing ->
+                            Nothing
+            in
+                { model | currentPlugin = plugin }
 
 
 
