@@ -7,6 +7,7 @@ import Html.Events exposing (on)
 import Json.Decode as Json exposing (object1, string, (:=))
 import Plugins.SimplePlugin as SimplePlugin
 import Plugins.MoreAdvancedPlugin as MoreAdvancedPlugin
+import Plugins.PluginDispatcher as PluginDispatcher exposing (Plugin, PluginMessage)
 
 
 main =
@@ -19,16 +20,6 @@ main =
 
 
 -- MODEL
-
-
-type Plugin
-    = SimplePlugin SimplePlugin.Model
-    | MoreAdvancedPlugin MoreAdvancedPlugin.Model
-
-
-type PluginMessage
-    = SimplePluginMessage SimplePlugin.Msg
-    | MoreAdvancedPluginMessage MoreAdvancedPlugin.Msg
 
 
 type alias Model =
@@ -56,30 +47,11 @@ type Msg
     | UpdatePlugin PluginMessage
 
 
-type Bla a
-    = One
-    | Two a
-    | Three a Int Int
-
-
-myFunc : Bla abc a sdkfj -> Int
-myFunc a =
-    1
-
-
 updateCurrentPlugin : Model -> Model
 updateCurrentPlugin model =
     let
         currentPlugin =
-            case model.sender ++ model.receiver of
-                "12" ->
-                    Just (SimplePlugin SimplePlugin.init)
-
-                "21" ->
-                    Just (MoreAdvancedPlugin MoreAdvancedPlugin.init)
-
-                _ ->
-                    Nothing
+            PluginDispatcher.getPlugin (model.sender ++ model.receiver)
     in
         { model | currentPlugin = currentPlugin }
 
@@ -110,18 +82,10 @@ showCurrentPlugin model =
     let
         default =
             div [] [ text "nothing to show, boring :(" ]
-
-        tagMessage messageType msg =
-            UpdatePlugin (messageType msg)
     in
         case model.currentPlugin of
             Just currentPlugin ->
-                case currentPlugin of
-                    SimplePlugin data ->
-                        App.map (tagMessage SimplePluginMessage) (SimplePlugin.view data)
-
-                    MoreAdvancedPlugin data ->
-                        App.map (tagMessage MoreAdvancedPluginMessage) (MoreAdvancedPlugin.view data)
+                PluginDispatcher.view UpdatePlugin currentPlugin
 
             Nothing ->
                 default
