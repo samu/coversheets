@@ -45,8 +45,13 @@ update msg plugin =
                 _ ->
                     plugin
 
-        _ ->
-            plugin
+        SimplePluginMessage msg ->
+            case plugin of
+                SimplePlugin model ->
+                    SimplePlugin (SimplePlugin.update msg model)
+
+                _ ->
+                    plugin
 
 
 view : (PluginMessage -> a) -> Plugin -> Html a

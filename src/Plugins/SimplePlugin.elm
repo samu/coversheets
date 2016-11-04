@@ -1,4 +1,4 @@
-module Plugins.SimplePlugin exposing (Model, Msg, init, view)
+module Plugins.SimplePlugin exposing (Model, Msg, init, view, update)
 
 import Html exposing (..)
 
