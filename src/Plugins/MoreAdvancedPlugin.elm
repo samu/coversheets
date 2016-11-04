@@ -1,6 +1,8 @@
-module Plugins.MoreAdvancedPlugin exposing (Model, Msg, init, view)
+module Plugins.MoreAdvancedPlugin exposing (Model, Msg, init, view, update)
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onInput)
 
 
 type alias Model =
@@ -10,7 +12,7 @@ type alias Model =
 
 
 type Msg
-    = Nothing
+    = Update String
 
 
 init : Model
@@ -20,6 +22,16 @@ init =
     }
 
 
+update : Msg -> Model -> Model
+update msg model =
+    case msg of
+        Update text ->
+            { model | freeText = text }
+
+
 view : Model -> Html Msg
 view model =
-    div [] [ text "this is more advanced plugin taking over" ]
+    div []
+        [ input [ type' "text", placeholder "Name", onInput Update ] []
+        , text model.freeText
+        ]
