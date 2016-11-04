@@ -11,11 +11,15 @@ import Plugins.PluginDispatcher as PluginDispatcher exposing (Plugin, PluginMess
 
 
 main =
-    App.beginnerProgram
-        { model = model
-        , view = view
-        , update = update
-        }
+    let
+        model =
+            Model "" "" "" "1" "1" Nothing |> updateCurrentPlugin
+    in
+        App.beginnerProgram
+            { model = model
+            , view = view
+            , update = update
+            }
 
 
 
@@ -30,11 +34,6 @@ type alias Model =
     , receiver : String
     , currentPlugin : Maybe Plugin
     }
-
-
-model : Model
-model =
-    Model "" "" "" "" "" Nothing
 
 
 
@@ -90,7 +89,7 @@ showCurrentPlugin : Model -> Html Msg
 showCurrentPlugin model =
     let
         default =
-            div [] [ text "nothing to show, boring :(" ]
+            div [] [ text "no plugin available for this config. Try 1+2 or 2+1." ]
     in
         case model.currentPlugin of
             Just currentPlugin ->
