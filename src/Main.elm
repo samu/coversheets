@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Html exposing (..)
-import Html.App as App
+import Html.App as App exposing (program)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on)
 import Json.Decode as Json exposing (object1, string, (:=))
@@ -15,11 +15,18 @@ main =
         model =
             Model "" "" "" "1" "1" Nothing |> updateCurrentPlugin
     in
-        App.beginnerProgram
-            { model = model
+        App.program
+            { init = ( model, Cmd.none )
             , view = view
             , update = update
+            , subscriptions = subscriptions
             }
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        []
 
 
 
@@ -55,14 +62,14 @@ updateCurrentPlugin model =
         { model | currentPlugin = currentPlugin }
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         UpdateSender value ->
-            updateCurrentPlugin { model | sender = value }
+            updateCurrentPlugin { model | sender = value } ! []
 
         UpdateReceiver value ->
-            updateCurrentPlugin { model | receiver = value }
+            updateCurrentPlugin { model | receiver = value } ! []
 
         UpdatePlugin message ->
             let
@@ -74,7 +81,7 @@ update msg model =
                         Nothing ->
                             Nothing
             in
-                { model | currentPlugin = plugin }
+                { model | currentPlugin = plugin } ! []
 
 
 
