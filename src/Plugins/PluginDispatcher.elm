@@ -3,17 +3,17 @@ module Plugins.PluginDispatcher exposing (..)
 import Html exposing (..)
 import Html.App as App
 import Plugins.SimplePlugin as SimplePlugin
-import Plugins.MoreAdvancedPlugin as MoreAdvancedPlugin
+import Plugins.AdvancedPlugin as AdvancedPlugin
 
 
 type Plugin
     = SimplePlugin SimplePlugin.Model
-    | MoreAdvancedPlugin MoreAdvancedPlugin.Model
+    | AdvancedPlugin AdvancedPlugin.Model
 
 
 type PluginMessage
     = SimplePluginMessage SimplePlugin.Msg
-    | MoreAdvancedPluginMessage MoreAdvancedPlugin.Msg
+    | AdvancedPluginMessage AdvancedPlugin.Msg
 
 
 getPlugin : String -> Maybe Plugin
@@ -23,7 +23,7 @@ getPlugin config =
             Just (SimplePlugin SimplePlugin.init)
 
         "21" ->
-            Just (MoreAdvancedPlugin MoreAdvancedPlugin.init)
+            Just (AdvancedPlugin AdvancedPlugin.init)
 
         _ ->
             Nothing
@@ -32,8 +32,8 @@ getPlugin config =
 update : PluginMessage -> Plugin -> Plugin
 update msg plugin =
     case ( msg, plugin ) of
-        ( MoreAdvancedPluginMessage msg, MoreAdvancedPlugin model ) ->
-            MoreAdvancedPlugin (MoreAdvancedPlugin.update msg model)
+        ( AdvancedPluginMessage msg, AdvancedPlugin model ) ->
+            AdvancedPlugin (AdvancedPlugin.update msg model)
 
         ( SimplePluginMessage msg, SimplePlugin model ) ->
             SimplePlugin (SimplePlugin.update msg model)
@@ -53,5 +53,5 @@ view parentMsg plugin =
         SimplePlugin data ->
             App.map (tagMessage parentMsg SimplePluginMessage) (SimplePlugin.view data)
 
-        MoreAdvancedPlugin data ->
-            App.map (tagMessage parentMsg MoreAdvancedPluginMessage) (MoreAdvancedPlugin.view data)
+        AdvancedPlugin data ->
+            App.map (tagMessage parentMsg AdvancedPluginMessage) (AdvancedPlugin.view data)

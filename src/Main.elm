@@ -6,7 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (on)
 import Json.Decode as Json exposing (object1, string, (:=))
 import Plugins.SimplePlugin as SimplePlugin
-import Plugins.MoreAdvancedPlugin as MoreAdvancedPlugin
+import Plugins.AdvancedPlugin as AdvancedPlugin
 import Plugins.PluginDispatcher as PluginDispatcher exposing (Plugin, PluginMessage)
 
 

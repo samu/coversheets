@@ -1,4 +1,4 @@
-module Plugins.MoreAdvancedPlugin exposing (Model, Msg, init, view, update)
+module Plugins.AdvancedPlugin exposing (Model, Msg, init, view, update)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
