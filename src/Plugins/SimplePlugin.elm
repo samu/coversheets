@@ -1,6 +1,8 @@
 module Plugins.SimplePlugin exposing (Model, Msg, init, view, update)
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onInput)
 
 
 type alias Model =
@@ -23,9 +25,18 @@ init =
 
 update : Msg -> Model -> Model
 update msg model =
-    model
+    case msg of
+        UpdateDocumentType text ->
+            { model | documentType = text }
+
+        _ ->
+            model
 
 
 view : Model -> Html Msg
 view model =
-    div [] [ text "this is simple plugin speaking" ]
+    div []
+        [ text "Document Type: "
+        , input [ type' "text", placeholder "Enter a document type", onInput UpdateDocumentType ] []
+        , text model.documentType
+        ]
