@@ -4,6 +4,8 @@ import Html exposing (..)
 import Html.App as App exposing (program)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on)
+import Http
+import Task exposing (Task)
 import Json.Decode as Json exposing (object1, string, (:=))
 import Plugins.SimplePlugin as SimplePlugin
 import Plugins.AdvancedPlugin as AdvancedPlugin
@@ -16,11 +18,25 @@ main =
             Model "" "" "" "1" "1" Nothing |> updateCurrentPlugin
     in
         App.program
-            { init = ( model, Cmd.none )
+            { init = ( model, initialLookup )
             , view = view
             , update = update
             , subscriptions = subscriptions
             }
+
+
+doLookup : Task Http.Error (List String)
+doLookup =
+    Http.get places ("/data.json")
+
+
+places : Json.Decoder (List String)
+places =
+    Json.list ("name" := Json.string)
+
+
+initialLookup =
+    Task.perform FetchFail FetchSucceed doLookup
 
 
 subscriptions : Model -> Sub Msg
@@ -51,6 +67,8 @@ type Msg
     = UpdateSender String
     | UpdateReceiver String
     | UpdatePlugin PluginMessage
+    | FetchSucceed (List String)
+    | FetchFail Http.Error
 
 
 updateCurrentPlugin : Model -> Model
@@ -82,6 +100,16 @@ update msg model =
                             Nothing
             in
                 { model | currentPlugin = plugin } ! []
+
+        FetchSucceed results ->
+            let
+                r =
+                    Debug.log "results" results
+            in
+                model ! []
+
+        FetchFail _ ->
+            model ! []
 
 
 
