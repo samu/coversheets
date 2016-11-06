@@ -29,11 +29,6 @@ getPlugin config =
             Nothing
 
 
-tagMessage : (PluginMessage -> a) -> (b -> PluginMessage) -> b -> a
-tagMessage parentMsg pluginMsg actualPluginMsg =
-    parentMsg (pluginMsg actualPluginMsg)
-
-
 update : PluginMessage -> Plugin -> Plugin
 update msg plugin =
     case ( msg, plugin ) of
@@ -45,6 +40,11 @@ update msg plugin =
 
         _ ->
             plugin
+
+
+tagMessage : (PluginMessage -> a) -> (b -> PluginMessage) -> b -> a
+tagMessage parentMsg pluginMsg actualPluginMsg =
+    parentMsg (pluginMsg actualPluginMsg)
 
 
 view : (PluginMessage -> a) -> Plugin -> Html a
