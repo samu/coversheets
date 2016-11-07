@@ -35,8 +35,12 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ text "Document Type: "
-        , input [ type' "text", placeholder "Enter a document type", onInput UpdateDocumentType ] []
-        , text model.documentType
+    Html.form [ class "form-horizontal" ]
+        [ div [ class "form-group" ]
+            [ label [ for "documentType", class "control-label col-sm-2" ]
+                [ text "Document Type" ]
+            , div [ class "col-sm-4" ]
+                [ input [ type' "text", class "form-control", placeholder "Enter a document type", onInput UpdateDocumentType ] [] ]
+            , text model.documentType
+            ]
         ]

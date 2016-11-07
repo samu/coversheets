@@ -17,7 +17,7 @@ import Plugins.PluginDispatcher as PluginDispatcher exposing (Plugin, PluginMess
 main =
     let
         model =
-            Model "" "" "" "1" "1" Nothing |> updateCurrentPlugin
+            Model "" "" "" "1" "2" Nothing |> updateCurrentPlugin
     in
         App.program
             { init = ( model, initialLookup )
@@ -154,9 +154,21 @@ view model =
         , div []
             [ text model.sender, text model.receiver ]
         , showCurrentPlugin model
+        , stylesheet
         ]
 
 
 targetValue : (String -> Msg) -> Json.Decoder Msg
 targetValue msg =
     object1 msg ("target" := (object1 identity ("value" := string)))
+
+
+stylesheet =
+    let
+        attrs =
+            [ attribute "rel" "stylesheet"
+            , attribute "property" "stylesheet"
+            , attribute "href" "//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"
+            ]
+    in
+        node "link" attrs []
