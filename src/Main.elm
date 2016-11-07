@@ -161,9 +161,7 @@ view model =
             FormUtils.formField "Receiver" receiverSelect []
 
         rest =
-            [ div []
-                [ text model.sender, text model.receiver ]
-            , showCurrentPlugin model
+            [ showCurrentPlugin model
             , stylesheet
             ]
     in
