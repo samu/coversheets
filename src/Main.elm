@@ -5,7 +5,9 @@ import Html.App as App exposing (program)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on)
 import Http
-import Task exposing (Task)
+import Task exposing (Task, andThen)
+import Process
+import Time
 import Json.Decode as Json exposing (object1, string, (:=))
 import Plugins.SimplePlugin as SimplePlugin
 import Plugins.AdvancedPlugin as AdvancedPlugin
@@ -35,8 +37,14 @@ places =
     Json.list ("name" := Json.string)
 
 
+introduceArtificialDelay : Task a b -> Task a b
+introduceArtificialDelay task =
+    Process.sleep (2 * Time.second)
+        `andThen` \() -> task
+
+
 initialLookup =
-    Task.perform FetchFail FetchSucceed doLookup
+    Task.perform FetchFail FetchSucceed <| introduceArtificialDelay doLookup
 
 
 subscriptions : Model -> Sub Msg
