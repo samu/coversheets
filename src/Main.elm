@@ -12,6 +12,7 @@ import Json.Decode as Json exposing (object1, string, (:=))
 import Plugins.SimplePlugin as SimplePlugin
 import Plugins.AdvancedPlugin as AdvancedPlugin
 import Plugins.PluginDispatcher as PluginDispatcher exposing (Plugin, PluginMessage)
+import FormUtils
 
 
 main =
@@ -144,18 +145,33 @@ showCurrentPlugin model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ select
-            [ on "change" (targetValue UpdateSender) ]
-            (produceOptions [ "", "1", "2", "3" ] model.sender)
-        , select
-            [ on "change" (targetValue UpdateReceiver) ]
-            (produceOptions [ "", "1", "2", "3" ] model.receiver)
-        , div []
-            [ text model.sender, text model.receiver ]
-        , showCurrentPlugin model
-        , stylesheet
-        ]
+    let
+        senderSelect =
+            select [ class "form-control", on "change" (targetValue UpdateSender) ]
+                (produceOptions [ "", "1", "2", "3" ] model.sender)
+
+        receiverSelect =
+            select [ class "form-control", on "change" (targetValue UpdateReceiver) ]
+                (produceOptions [ "", "1", "2", "3" ] model.receiver)
+
+        senderFormField =
+            FormUtils.formField "Sender" senderSelect []
+
+        receiverFormField =
+            FormUtils.formField "Receiver" receiverSelect []
+
+        rest =
+            [ div []
+                [ text model.sender, text model.receiver ]
+            , showCurrentPlugin model
+            , stylesheet
+            ]
+    in
+        Html.form [ class "form-horizontal" ]
+            [ div
+                []
+                ([ senderFormField, receiverFormField ] ++ rest)
+            ]
 
 
 targetValue : (String -> Msg) -> Json.Decoder Msg

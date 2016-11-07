@@ -3,6 +3,7 @@ module Plugins.SimplePlugin exposing (Model, Msg, init, view, update)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
+import FormUtils
 
 
 type alias Model =
@@ -35,12 +36,11 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Html.form [ class "form-horizontal" ]
-        [ div [ class "form-group" ]
-            [ label [ for "documentType", class "control-label col-sm-2" ]
-                [ text "Document Type" ]
-            , div [ class "col-sm-4" ]
-                [ input [ type' "text", class "form-control", placeholder "Enter a document type", onInput UpdateDocumentType ] [] ]
-            , text model.documentType
-            ]
-        ]
+    let
+        inputField =
+            input [ type' "text", class "form-control", placeholder "Enter a document type", onInput UpdateDocumentType ] []
+
+        plaintextLabel =
+            text model.documentType
+    in
+        FormUtils.formField "Document Type" inputField [ plaintextLabel ]
