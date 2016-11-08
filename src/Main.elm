@@ -18,7 +18,12 @@ import FormUtils
 main =
     let
         model =
-            Model "" "" "" "1" "2" Nothing |> updateCurrentPlugin
+            { sender = "1"
+            , receiver = "2"
+            , currentPlugin = Nothing
+            , formIsDisabled = True
+            }
+                |> updateCurrentPlugin
     in
         App.program
             { init = ( model, initialLookup )
@@ -45,7 +50,7 @@ introduceArtificialDelay task =
 
 
 initialLookup =
-    Task.perform FetchFail FetchSucceed <| introduceArtificialDelay doLookup
+    Task.perform InitialFetchFail InitialFetchSucceed <| introduceArtificialDelay doLookup
 
 
 subscriptions : Model -> Sub Msg
@@ -59,12 +64,10 @@ subscriptions model =
 
 
 type alias Model =
-    { name : String
-    , password : String
-    , passwordAgain : String
-    , sender : String
+    { sender : String
     , receiver : String
     , currentPlugin : Maybe Plugin
+    , formIsDisabled : Bool
     }
 
 
@@ -76,8 +79,8 @@ type Msg
     = UpdateSender String
     | UpdateReceiver String
     | UpdatePlugin PluginMessage
-    | FetchSucceed (List String)
-    | FetchFail Http.Error
+    | InitialFetchSucceed (List String)
+    | InitialFetchFail Http.Error
 
 
 updateCurrentPlugin : Model -> Model
@@ -110,14 +113,14 @@ update msg model =
             in
                 { model | currentPlugin = plugin } ! []
 
-        FetchSucceed results ->
+        InitialFetchSucceed results ->
             let
                 r =
                     Debug.log "results" results
             in
-                model ! []
+                { model | formIsDisabled = False } ! []
 
-        FetchFail _ ->
+        InitialFetchFail _ ->
             model ! []
 
 
@@ -166,9 +169,10 @@ view model =
             ]
     in
         Html.form [ class "form-horizontal" ]
-            [ div
-                []
-                ([ senderFormField, receiverFormField ] ++ rest)
+            [ fieldset [ disabled model.formIsDisabled ]
+                [ div []
+                    ([ senderFormField, receiverFormField ] ++ rest)
+                ]
             ]
 
 
