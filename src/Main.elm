@@ -3,7 +3,7 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.App as App exposing (program)
 import Html.Attributes exposing (..)
-import Html.Events exposing (on)
+import Html.Events exposing (on, onInput, onBlur)
 import Http
 import Task exposing (Task, andThen)
 import Process
@@ -24,6 +24,7 @@ main =
             , currentPlugin = Nothing
             , formIsDisabled = True
             , autoState = Autocomplete.reset updateConfig Autocomplete.empty
+            , showAutocomplete = False
             }
                 |> updateCurrentPlugin
     in
@@ -47,7 +48,7 @@ places =
 
 introduceArtificialDelay : Task a b -> Task a b
 introduceArtificialDelay task =
-    Process.sleep (2 * Time.second)
+    Process.sleep (0.5 * Time.second)
         `andThen` \() -> task
 
 
@@ -71,6 +72,7 @@ type alias Model =
     , currentPlugin : Maybe Plugin
     , formIsDisabled : Bool
     , autoState : Autocomplete.State
+    , showAutocomplete : Bool
     }
 
 
@@ -84,6 +86,7 @@ type Msg
     | UpdatePlugin PluginMessage
     | InitialFetchSucceed (List String)
     | InitialFetchFail Http.Error
+    | UpdateQuery String
     | SelectPerson String
     | SetAutocompleteState Autocomplete.Msg
     | Wrap Bool
@@ -118,6 +121,18 @@ update msg model =
                             Nothing
             in
                 { model | currentPlugin = plugin } ! []
+
+        UpdateQuery string ->
+            let
+                showAutocomplete =
+                    case string of
+                        "" ->
+                            False
+
+                        _ ->
+                            True
+            in
+                { model | showAutocomplete = showAutocomplete } ! []
 
         InitialFetchSucceed results ->
             { model | formIsDisabled = False } ! []
@@ -236,9 +251,34 @@ view model =
         receiverFormField =
             FormUtils.formField "Receiver" receiverSelect []
 
+        someOtherInput =
+            let
+                autocompleteMenu =
+                    if model.showAutocomplete then
+                        div [ style [ ( "position", "absolute" ), ( "z-index", "1000" ) ] ]
+                            [ App.map SetAutocompleteState (Autocomplete.view viewConfig howManyToShow model.autoState autocompleteEntries) ]
+                    else
+                        div [] []
+            in
+                div []
+                    [ input [ type' "text", class "form-control", placeholder "...", onInput UpdateQuery, onBlur (UpdateQuery "") ] []
+                    , autocompleteMenu
+                    ]
+
+        someOtherInputField =
+            FormUtils.formField "Some Other Input" someOtherInput []
+
+        yetAnotherInputField =
+            let
+                field =
+                    input [ type' "text", class "form-control", placeholder "..." ] []
+            in
+                FormUtils.formField "Yet Another Input" field []
+
         rest =
             [ showCurrentPlugin model
-            , App.map SetAutocompleteState (Autocomplete.view viewConfig howManyToShow model.autoState autocompleteEntries)
+            , someOtherInputField
+            , yetAnotherInputField
             , stylesheet
             ]
     in
