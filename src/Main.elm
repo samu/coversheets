@@ -13,6 +13,7 @@ import Plugins.SimplePlugin as SimplePlugin
 import Plugins.AdvancedPlugin as AdvancedPlugin
 import Plugins.PluginDispatcher as PluginDispatcher exposing (Plugin, PluginMessage)
 import FormUtils
+import Autocomplete
 
 
 main =
@@ -22,6 +23,7 @@ main =
             , receiver = "2"
             , currentPlugin = Nothing
             , formIsDisabled = True
+            , autoState = Autocomplete.reset updateConfig Autocomplete.empty
             }
                 |> updateCurrentPlugin
     in
@@ -56,7 +58,7 @@ initialLookup =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        []
+        [ Sub.map SetAutocompleteState Autocomplete.subscription ]
 
 
 
@@ -68,6 +70,7 @@ type alias Model =
     , receiver : String
     , currentPlugin : Maybe Plugin
     , formIsDisabled : Bool
+    , autoState : Autocomplete.State
     }
 
 
@@ -81,6 +84,9 @@ type Msg
     | UpdatePlugin PluginMessage
     | InitialFetchSucceed (List String)
     | InitialFetchFail Http.Error
+    | SelectPerson String
+    | SetAutocompleteState Autocomplete.Msg
+    | Wrap Bool
 
 
 updateCurrentPlugin : Model -> Model
@@ -114,18 +120,85 @@ update msg model =
                 { model | currentPlugin = plugin } ! []
 
         InitialFetchSucceed results ->
-            let
-                r =
-                    Debug.log "results" results
-            in
-                { model | formIsDisabled = False } ! []
+            { model | formIsDisabled = False } ! []
 
         InitialFetchFail _ ->
             model ! []
 
+        SelectPerson id ->
+            model ! []
+
+        SetAutocompleteState autoMsg ->
+            let
+                ( newState, maybeMsg ) =
+                    Autocomplete.update updateConfig autoMsg howManyToShow model.autoState autocompleteEntries
+
+                newModel =
+                    { model | autoState = newState }
+            in
+                case maybeMsg of
+                    Nothing ->
+                        newModel ! []
+
+                    Just updateMsg ->
+                        update updateMsg newModel
+
+        Wrap up ->
+            let
+                resetStrategy =
+                    if up then
+                        Autocomplete.resetToFirstItem
+                    else
+                        Autocomplete.resetToLastItem
+
+                newAutoState =
+                    resetStrategy updateConfig autocompleteEntries howManyToShow model.autoState
+            in
+                { model | autoState = newAutoState } ! []
+
 
 
 -- VIEW
+
+
+updateConfig : Autocomplete.UpdateConfig Msg Person
+updateConfig =
+    Autocomplete.updateConfig
+        { toId = .name
+        , onKeyDown =
+            \code maybeId ->
+                if code == 13 then
+                    Maybe.map SelectPerson maybeId
+                else
+                    Nothing
+        , onTooLow = Just (Wrap True)
+        , onTooHigh = Just (Wrap False)
+        , onMouseEnter = \_ -> Nothing
+        , onMouseLeave = \_ -> Nothing
+        , onMouseClick = \id -> Just <| SelectPerson id
+        , separateSelections = False
+        }
+
+
+viewConfig : Autocomplete.ViewConfig Person
+viewConfig =
+    let
+        customizedLi keySelected mouseSelected person =
+            { attributes = [ classList [ ( "list-group-item", True ), ( "active", keySelected || mouseSelected ) ] ]
+            , children = [ Html.text person.name ]
+            }
+    in
+        Autocomplete.viewConfig
+            { toId = .name
+            , ul =
+                [ class "list-group" ]
+            , li =
+                customizedLi
+            }
+
+
+type alias Person =
+    { name : String }
 
 
 produceOptions values current =
@@ -165,6 +238,7 @@ view model =
 
         rest =
             [ showCurrentPlugin model
+            , App.map SetAutocompleteState (Autocomplete.view viewConfig howManyToShow model.autoState autocompleteEntries)
             , stylesheet
             ]
     in
@@ -190,3 +264,17 @@ stylesheet =
             ]
     in
         node "link" attrs []
+
+
+autocompleteEntries =
+    [ { name = "abc" }
+    , { name = "another one" }
+    , { name = "even more!" }
+    , { name = "one" }
+    , { name = "two" }
+    , { name = "three" }
+    ]
+
+
+howManyToShow =
+    4
