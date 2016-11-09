@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Platform.Sub
 import Json.Decode
+import Task
 
 main = 
   Html.App.program 
@@ -35,9 +36,9 @@ update msg model =
   case msg of
     AutocompleteUpdate acmsg ->
       let 
-        newAutocomplete = acupdate acmsg model.autocomplete
+        (newAutocomplete, autocompleteMessage) = acupdate acmsg model.autocomplete
       in
-        { model | autocomplete = newAutocomplete } ! []
+        { model | autocomplete = newAutocomplete } ! [Cmd.map AutocompleteUpdate autocompleteMessage]
 
 view : Model -> Html Msg
 view model =
@@ -62,6 +63,7 @@ type AcMsg
   = AcOnInput String
   | AcOnKeypress Int
   | AcOnMouseEnter Int
+  | AcOnEscape
   
 acinit = 
   { show = False
@@ -69,7 +71,7 @@ acinit =
   }
 
 
-acupdate : AcMsg -> AcModel -> AcModel
+acupdate : AcMsg -> AcModel -> (AcModel, Cmd AcMsg)
 acupdate msg model =
   case msg of
     AcOnInput string ->
@@ -83,7 +85,7 @@ acupdate msg model =
         a = Debug.log "AcOnInput" 0
           
       in
-        { model | show = show, currentPosition = Nothing }
+        { model | show = show, currentPosition = Nothing } ! []
      
     AcOnKeypress keyCode ->
       let
@@ -103,12 +105,21 @@ acupdate msg model =
               Just (int + 1)
             (_, _) ->
               model.currentPosition
-
+         
+        newMsg = 
+          case keyCode of 
+            27 ->
+              [ Task.perform (always AcOnEscape) (always AcOnEscape) (Task.succeed Nothing)]
+            _ ->
+              []
       in 
-        { model | currentPosition = currentPosition' }
+        { model | currentPosition = currentPosition' } ! newMsg
     
     AcOnMouseEnter idx ->
-      { model | currentPosition = Just idx }
+      { model | currentPosition = Just idx } ! []
+      
+    AcOnEscape ->
+      { model | currentPosition = Nothing, show = False } ! []
 
 
 
