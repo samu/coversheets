@@ -25,6 +25,7 @@ main =
             , formIsDisabled = True
             , autoState = Autocomplete.reset updateConfig Autocomplete.empty
             , showAutocomplete = False
+            , query = ""
             }
                 |> updateCurrentPlugin
     in
@@ -73,6 +74,7 @@ type alias Model =
     , formIsDisabled : Bool
     , autoState : Autocomplete.State
     , showAutocomplete : Bool
+    , query : String
     }
 
 
@@ -87,6 +89,8 @@ type Msg
     | InitialFetchSucceed (List String)
     | InitialFetchFail Http.Error
     | UpdateQuery String
+    | EnterInAutocomplete String
+    | EscapeAutocomplete
     | SelectPerson String
     | SetAutocompleteState Autocomplete.Msg
     | Wrap Bool
@@ -132,7 +136,13 @@ update msg model =
                         _ ->
                             True
             in
-                { model | showAutocomplete = showAutocomplete } ! []
+                { model | query = string, showAutocomplete = showAutocomplete } ! []
+
+        EnterInAutocomplete string ->
+            { model | query = string, showAutocomplete = False } ! []
+
+        EscapeAutocomplete ->
+            { model | showAutocomplete = False } ! []
 
         InitialFetchSucceed results ->
             { model | formIsDisabled = False } ! []
@@ -183,7 +193,9 @@ updateConfig =
         , onKeyDown =
             \code maybeId ->
                 if code == 13 then
-                    Maybe.map SelectPerson maybeId
+                    Maybe.map EnterInAutocomplete maybeId
+                else if code == 27 then
+                    Just EscapeAutocomplete
                 else
                     Nothing
         , onTooLow = Just (Wrap True)
@@ -261,7 +273,7 @@ view model =
                         div [] []
             in
                 div []
-                    [ input [ type' "text", class "form-control", placeholder "...", onInput UpdateQuery, onBlur (UpdateQuery "") ] []
+                    [ input [ type' "text", value model.query, class "form-control", placeholder "...", onInput UpdateQuery, onBlur (EscapeAutocomplete) ] []
                     , autocompleteMenu
                     ]
 
