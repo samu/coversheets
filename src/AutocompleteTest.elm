@@ -8,6 +8,7 @@ import Platform.Sub
 import Json.Decode
 import Task
 import MyAutocomplete
+import Array
 
 
 main =
@@ -21,18 +22,37 @@ main =
 
 init =
     { autocomplete = MyAutocomplete.init
+    , query = ""
     , leField = "le value"
     }
 
 
+options =
+    [ "one", "two", "three", "bla", "blubb" ]
+
+
 type alias Model =
     { autocomplete : MyAutocomplete.Model
+    , query : String
     , leField : String
     }
 
 
 type Msg
     = AutocompleteUpdate MyAutocomplete.Msg
+
+
+getItemFromOptions idx =
+    let
+        normalizedIdx =
+            idx % (List.length options)
+    in
+        case Array.fromList options |> Array.get normalizedIdx of
+            Just item ->
+                item
+
+            Nothing ->
+                "n/a"
 
 
 update msg model =
@@ -44,20 +64,31 @@ update msg model =
 
                 leField' =
                     case acmsg of
-                        MyAutocomplete.AcOnInputExternal value ->
-                            value
+                        MyAutocomplete.AcOnSelectionExternal idx ->
+                            getItemFromOptions idx
 
                         _ ->
                             model.leField
+
+                query' =
+                    case acmsg of
+                        MyAutocomplete.AcOnSelectionExternal idx ->
+                            getItemFromOptions idx
+
+                        MyAutocomplete.AcOnInputExternal query ->
+                            query
+
+                        _ ->
+                            model.query
             in
-                { model | autocomplete = newAutocomplete, leField = leField' } ! [ Cmd.map AutocompleteUpdate autocompleteMessage ]
+                { model | autocomplete = newAutocomplete, leField = leField', query = query' } ! [ Cmd.map AutocompleteUpdate autocompleteMessage ]
 
 
 view : Model -> Html Msg
 view model =
     div [ class "form-horizontal" ]
         [ stylesheet
-        , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField "Le Field" model.autocomplete)
+        , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField options model.query "Le Field" model.autocomplete)
         , div [] [ text (toString model.autocomplete.currentPosition) ]
         , div [] [ text model.leField ]
         ]

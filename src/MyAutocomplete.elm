@@ -92,7 +92,7 @@ update msg model =
                             []
 
                 onSelectionMsg =
-                    case model.currentPosition of
+                    case currentPosition' of
                         Just int ->
                             if keyCode == 38 || keyCode == 40 then
                                 [ Task.perform AcOnSelectionExternal AcOnSelectionExternal (Task.succeed int) ]
@@ -105,7 +105,11 @@ update msg model =
                 { model | currentPosition = currentPosition' } ! (onEscapeMsg ++ onSelectionMsg)
 
         AcOnMouseEnter idx ->
-            { model | currentPosition = Just idx } ! []
+            let
+                msg =
+                    [ Task.perform AcOnSelectionExternal AcOnSelectionExternal (Task.succeed idx) ]
+            in
+                { model | currentPosition = Just idx } ! msg
 
         AcOnEscape ->
             { model | currentPosition = Nothing, show = False } ! []
@@ -130,14 +134,11 @@ formField label' input list =
         )
 
 
-autocompleteableFormField : String -> Model -> Html Msg
-autocompleteableFormField name autocompleteModel =
+autocompleteableFormField : List String -> String -> String -> Model -> Html Msg
+autocompleteableFormField options query name autocompleteModel =
     let
         { show } =
             autocompleteModel
-
-        options =
-            [ "one", "two", "three", "bla", "blubb" ]
 
         idx =
             case autocompleteModel.currentPosition of
@@ -164,7 +165,7 @@ autocompleteableFormField name autocompleteModel =
 
         html =
             div []
-                [ input [ type' "text", inputClass, onInput', onKeyDown', onBlur' ] []
+                [ input [ type' "text", value query, inputClass, onInput', onKeyDown', onBlur' ] []
                 , suggestions
                 ]
     in
