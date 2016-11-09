@@ -1,4 +1,4 @@
-module Main exposing (..)
+module MyAutocomplete exposing (Model, Msg(AcOnInputExternal, AcOnSelectionExternal), init, update, autocompleteableFormField)
 
 import Html exposing (..)
 import Html.App
@@ -9,78 +9,13 @@ import Json.Decode
 import Task
 
 
-main =
-    Html.App.program
-        { init = init ! []
-        , view = view
-        , update = update
-        , subscriptions = \_ -> Sub.none
-        }
-
-
-init =
-    { autocomplete = acinit
-    , leField = "le value"
-    }
-
-
-
--------------------
--- CORE PROGRAM
--------------------
-
-
 type alias Model =
-    { autocomplete : AcModel
-    , leField : String
-    }
-
-
-type Msg
-    = AutocompleteUpdate AcMsg
-
-
-update msg model =
-    case msg of
-        AutocompleteUpdate acmsg ->
-            let
-                ( newAutocomplete, autocompleteMessage ) =
-                    acupdate acmsg model.autocomplete
-
-                leField' =
-                    case acmsg of
-                        AcOnInputExternal value ->
-                            value
-
-                        _ ->
-                            model.leField
-            in
-                { model | autocomplete = newAutocomplete, leField = leField' } ! [ Cmd.map AutocompleteUpdate autocompleteMessage ]
-
-
-view : Model -> Html Msg
-view model =
-    div [ class "form-horizontal" ]
-        [ stylesheet
-        , Html.App.map AutocompleteUpdate (acAutocompleteableFormField "Le Field" model.autocomplete)
-        , div [] [ text (toString model.autocomplete.currentPosition) ]
-        , div [] [ text model.leField ]
-        ]
-
-
-
--------------------
--- Autocomplete Lib
--------------------
-
-
-type alias AcModel =
     { show : Bool
     , currentPosition : Maybe Int
     }
 
 
-type AcMsg
+type Msg
     = AcOnInput String
     | AcOnInputExternal String
     | AcOnSelectionExternal Int
@@ -90,14 +25,14 @@ type AcMsg
     | AcOnBlur
 
 
-acinit =
+init =
     { show = False
     , currentPosition = Nothing
     }
 
 
-acupdate : AcMsg -> AcModel -> ( AcModel, Cmd AcMsg )
-acupdate msg model =
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
     case msg of
         AcOnInput string ->
             let
@@ -179,10 +114,6 @@ acupdate msg model =
             { model | currentPosition = Nothing, show = False } ! []
 
 
-
--- BOOTSTRAP HELPERS
-
-
 inputClass =
     class "form-control"
 
@@ -199,8 +130,8 @@ formField label' input list =
         )
 
 
-acAutocompleteableFormField : String -> AcModel -> Html AcMsg
-acAutocompleteableFormField name autocompleteModel =
+autocompleteableFormField : String -> Model -> Html Msg
+autocompleteableFormField name autocompleteModel =
     let
         { show } =
             autocompleteModel
@@ -257,14 +188,3 @@ listGroup options idx =
             List.indexedMap createOptionElement options
     in
         div [ class "list-group", style [ ( "position", "absolute" ) ] ] options'
-
-
-stylesheet =
-    let
-        attrs =
-            [ attribute "rel" "stylesheet"
-            , attribute "property" "stylesheet"
-            , attribute "href" "//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"
-            ]
-    in
-        node "link" attrs []
