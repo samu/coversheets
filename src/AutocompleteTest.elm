@@ -72,11 +72,13 @@ update msg model =
 
                 query' =
                     case acmsg of
-                        MyAutocomplete.AcOnSelectionExternal idx ->
-                            getItemFromOptions idx
-
+                        -- MyAutocomplete.AcOnSelectionExternal idx ->
+                        --     getItemFromOptions idx
                         MyAutocomplete.AcOnInputExternal query ->
                             query
+
+                        MyAutocomplete.AcOnEnterExternal idx ->
+                            getItemFromOptions idx
 
                         _ ->
                             model.query

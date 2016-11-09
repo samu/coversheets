@@ -1,4 +1,4 @@
-module MyAutocomplete exposing (Model, Msg(AcOnInputExternal, AcOnSelectionExternal), init, update, autocompleteableFormField)
+module MyAutocomplete exposing (Model, Msg(AcOnInputExternal, AcOnSelectionExternal, AcOnEnterExternal), init, update, autocompleteableFormField)
 
 import Html exposing (..)
 import Html.App
@@ -19,9 +19,11 @@ type Msg
     = AcOnInput String
     | AcOnInputExternal String
     | AcOnSelectionExternal Int
+    | AcOnEnterExternal Int
     | AcOnKeypress Int
     | AcOnMouseEnter Int
     | AcOnEscape
+    | AcOnEnter Int
     | AcOnBlur
 
 
@@ -58,6 +60,9 @@ update msg model =
         AcOnSelectionExternal idx ->
             model ! []
 
+        AcOnEnterExternal idx ->
+            model ! []
+
         AcOnKeypress keyCode ->
             let
                 a =
@@ -91,18 +96,31 @@ update msg model =
                         _ ->
                             []
 
+                onEnterMsg =
+                    case currentPosition' of
+                        Just idx ->
+                            case keyCode of
+                                13 ->
+                                    [ Task.perform AcOnEnter AcOnEnter (Task.succeed idx) ]
+
+                                _ ->
+                                    []
+
+                        Nothing ->
+                            []
+
                 onSelectionMsg =
                     case currentPosition' of
-                        Just int ->
+                        Just idx ->
                             if keyCode == 38 || keyCode == 40 then
-                                [ Task.perform AcOnSelectionExternal AcOnSelectionExternal (Task.succeed int) ]
+                                [ Task.perform AcOnSelectionExternal AcOnSelectionExternal (Task.succeed idx) ]
                             else
                                 []
 
                         Nothing ->
                             []
             in
-                { model | currentPosition = currentPosition' } ! (onEscapeMsg ++ onSelectionMsg)
+                { model | currentPosition = currentPosition' } ! (onEscapeMsg ++ onSelectionMsg ++ onEnterMsg)
 
         AcOnMouseEnter idx ->
             let
@@ -113,6 +131,13 @@ update msg model =
 
         AcOnEscape ->
             { model | currentPosition = Nothing, show = False } ! []
+
+        AcOnEnter idx ->
+            let
+                msg =
+                    [ Task.perform AcOnEnterExternal AcOnEnterExternal (Task.succeed idx) ]
+            in
+                { model | currentPosition = Nothing, show = False } ! msg
 
         AcOnBlur ->
             { model | currentPosition = Nothing, show = False } ! []
