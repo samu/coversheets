@@ -14,9 +14,11 @@ main =
     , update = update
     , subscriptions = \_ -> Sub.none
     }
-    
+
+
 init = 
   { autocomplete = acinit
+  , leField = "le value"
   }
 
 -------------------
@@ -25,6 +27,7 @@ init =
 
 type alias Model =
   { autocomplete : AcModel
+  , leField : String
   }
   
     
@@ -37,15 +40,26 @@ update msg model =
     AutocompleteUpdate acmsg ->
       let 
         (newAutocomplete, autocompleteMessage) = acupdate acmsg model.autocomplete
+        
+        
+        leField' = 
+          case acmsg of
+            AcOnInputExternal value ->
+              value
+            _ ->
+              model.leField
+            
+        
       in
-        { model | autocomplete = newAutocomplete } ! [Cmd.map AutocompleteUpdate autocompleteMessage]
+        { model | autocomplete = newAutocomplete, leField = leField' } ! [Cmd.map AutocompleteUpdate autocompleteMessage]
 
 view : Model -> Html Msg
 view model =
-  div [ class "form-horizontal" ] 
+  div [ class "form-horizontal" ]
     [ stylesheet
-    , Html.App.map AutocompleteUpdate (autocompleteableFormField "Le Field" model.autocomplete)
-    , text (toString model.autocomplete.currentPosition)
+    , Html.App.map AutocompleteUpdate (acAutocompleteableFormField "Le Field" model.autocomplete)
+    , div [] [ text (toString model.autocomplete.currentPosition) ]
+    , div [] [ text model.leField ]
     ]
   
   
@@ -61,9 +75,12 @@ type alias AcModel =
 
 type AcMsg
   = AcOnInput String
+  | AcOnInputExternal String
+  | AcOnSelectionExternal Int
   | AcOnKeypress Int
   | AcOnMouseEnter Int
   | AcOnEscape
+  | AcOnBlur
   
 acinit = 
   { show = False
@@ -83,15 +100,26 @@ acupdate msg model =
              True
              
         a = Debug.log "AcOnInput" 0
+        
+        msg =
+          Task.perform AcOnInputExternal AcOnInputExternal (Task.succeed string)
           
       in
-        { model | show = show, currentPosition = Nothing } ! []
+        { model | show = show, currentPosition = Nothing } ! [msg]
+    
+    AcOnInputExternal string ->
+      model ! []
+      
+    AcOnSelectionExternal idx ->
+      model ! []
      
     AcOnKeypress keyCode ->
       let
         a = Debug.log "keyCode" keyCode
         
         b = Debug.log "AcOnKeypress" 0
+        
+        
         
         currentPosition' = 
           case (model.currentPosition, keyCode) of
@@ -106,19 +134,33 @@ acupdate msg model =
             (_, _) ->
               model.currentPosition
          
-        newMsg = 
+        onEscapeMsg = 
           case keyCode of 
             27 ->
-              [ Task.perform (always AcOnEscape) (always AcOnEscape) (Task.succeed Nothing)]
+              [ Task.perform (always AcOnEscape) (always AcOnEscape) (Task.succeed Nothing) ]
             _ ->
               []
+        
+        onSelectionMsg = 
+          case model.currentPosition of
+            Just int ->
+              if keyCode == 38 || keyCode == 40 then
+                [ Task.perform AcOnSelectionExternal AcOnSelectionExternal (Task.succeed int) ]
+              else 
+                []
+            Nothing ->
+              [] 
+            
       in 
-        { model | currentPosition = currentPosition' } ! newMsg
+        { model | currentPosition = currentPosition' } ! (onEscapeMsg ++ onSelectionMsg)
     
     AcOnMouseEnter idx ->
       { model | currentPosition = Just idx } ! []
       
     AcOnEscape ->
+      { model | currentPosition = Nothing, show = False } ! []
+      
+    AcOnBlur ->
       { model | currentPosition = Nothing, show = False } ! []
 
 
@@ -142,8 +184,8 @@ formField label' input list =
         )
 
 
-autocompleteableFormField : String -> AcModel -> Html AcMsg
-autocompleteableFormField name autocompleteModel =
+acAutocompleteableFormField : String -> AcModel -> Html AcMsg
+acAutocompleteableFormField name autocompleteModel =
   let
     {show} = 
       autocompleteModel
@@ -161,18 +203,19 @@ autocompleteableFormField name autocompleteModel =
 
     suggestions = 
       if show then 
-        listGroup options <| Debug.log "idx" idx
+        listGroup options idx
       else 
         div [] []
-       
-    
+
     onInput' = onInput AcOnInput
-    
+
     onKeyDown' = on "keydown" (Json.Decode.map AcOnKeypress keyCode)
+
+    onBlur' = onBlur AcOnBlur
 
     html = 
       div [] 
-        [ input [ type' "text", inputClass, onInput', onKeyDown' ] []
+        [ input [ type' "text", inputClass, onInput', onKeyDown', onBlur' ] []
         , suggestions
         ]
 
@@ -196,7 +239,7 @@ listGroup options idx =
     options' = 
       List.indexedMap createOptionElement options
   in
-    div [ class "list-group" ] options'
+    div [ class "list-group", style [("position", "absolute")] ] options'
       
 
 stylesheet =
