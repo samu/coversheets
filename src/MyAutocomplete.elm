@@ -17,15 +17,15 @@ type alias Model =
 
 type Msg
     = OnInput String
-    | OnInputExternal String
-    | OnHoverExternal Int
-    | OnPickExternal Int
     | OnKeypress Int
     | OnMouseEnter Int
     | OnClick Int
     | OnEscape
     | OnEnter Int
     | OnBlur
+    | OnInputExternal String
+    | OnHoverExternal Int
+    | OnPickExternal Int
 
 
 init =
@@ -54,15 +54,6 @@ update msg model =
                     Task.perform OnInputExternal OnInputExternal (Task.succeed string)
             in
                 { model | show = show, currentPosition = Nothing } ! [ msg ]
-
-        OnInputExternal string ->
-            model ! []
-
-        OnHoverExternal idx ->
-            model ! []
-
-        OnPickExternal idx ->
-            model ! []
 
         OnKeypress keyCode ->
             let
@@ -149,6 +140,15 @@ update msg model =
 
         OnBlur ->
             { model | currentPosition = Nothing, show = False } ! []
+
+        OnInputExternal string ->
+            model ! []
+
+        OnHoverExternal idx ->
+            model ! []
+
+        OnPickExternal idx ->
+            model ! []
 
 
 inputClass =
