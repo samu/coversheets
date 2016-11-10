@@ -9,6 +9,7 @@ import Json.Decode
 import Task
 import MyAutocomplete
 import Array
+import String
 
 
 main =
@@ -23,18 +24,42 @@ main =
 init =
     { autocomplete = MyAutocomplete.init
     , query = ""
-    , leField = "le value"
+    , selection = ""
     }
 
 
-options =
-    [ "one", "two", "three", "bla", "blubb" ]
+getOptions model =
+    let
+        availableOptions =
+            [ "stream"
+            , "porter"
+            , "convulsion"
+            , "fascinate"
+            , "excavate"
+            , "pollution"
+            , "likely"
+            , "snake"
+            , "present"
+            , "truck"
+            , "dribble"
+            , "cabin"
+            , "reveal"
+            , "available"
+            , "roar"
+            , "manual"
+            , "chauvinist"
+            , "still"
+            , "ice"
+            , "fool"
+            ]
+    in
+        List.filter (String.contains model.query) availableOptions
 
 
 type alias Model =
     { autocomplete : MyAutocomplete.Model
     , query : String
-    , leField : String
+    , selection : String
     }
 
 
@@ -42,12 +67,12 @@ type Msg
     = AutocompleteUpdate MyAutocomplete.Msg
 
 
-getItemFromOptions idx =
+getItemFromOptions idx model =
     let
         normalizedIdx =
-            idx % (List.length options)
+            idx % (List.length (getOptions model))
     in
-        case Array.fromList options |> Array.get normalizedIdx of
+        case Array.fromList (getOptions model) |> Array.get normalizedIdx of
             Just item ->
                 item
 
@@ -62,13 +87,13 @@ update msg model =
                 ( newAutocomplete, autocompleteMessage ) =
                     MyAutocomplete.update acmsg model.autocomplete
 
-                leField' =
+                selection' =
                     case acmsg of
                         MyAutocomplete.AcOnSelectionExternal idx ->
-                            getItemFromOptions idx
+                            getItemFromOptions idx model
 
                         _ ->
-                            model.leField
+                            model.selection
 
                 query' =
                     case acmsg of
@@ -78,21 +103,21 @@ update msg model =
                             query
 
                         MyAutocomplete.AcOnEnterExternal idx ->
-                            getItemFromOptions idx
+                            getItemFromOptions idx model
 
                         _ ->
                             model.query
             in
-                { model | autocomplete = newAutocomplete, leField = leField', query = query' } ! [ Cmd.map AutocompleteUpdate autocompleteMessage ]
+                { model | autocomplete = newAutocomplete, selection = selection', query = query' } ! [ Cmd.map AutocompleteUpdate autocompleteMessage ]
 
 
 view : Model -> Html Msg
 view model =
     div [ class "form-horizontal" ]
         [ stylesheet
-        , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField options model.query "Le Field" model.autocomplete)
-        , div [] [ text (toString model.autocomplete.currentPosition) ]
-        , div [] [ text model.leField ]
+        , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField (getOptions model) model.query "Le Field" model.autocomplete)
+          -- , div [] [ text (toString model.autocomplete.currentPosition) ]
+        , div [] [ text "selection: ", text model.selection ]
         ]
 
 
