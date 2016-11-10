@@ -4,12 +4,14 @@ import Html exposing (..)
 import Html.App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Http
 import Platform.Sub
 import Json.Decode
 import Task
 import MyAutocomplete
 import Array
 import String
+import DemoRestApi exposing (..)
 
 
 main =
@@ -70,6 +72,9 @@ type alias Model =
 type Msg
     = AutocompleteUpdate MyAutocomplete.Msg
     | AnotherAutocompleteUpdate MyAutocomplete.Msg
+    | FetchDataForAutocomplete String
+    | WordFetchSucceed (List String)
+    | WordFetchFail Http.Error
 
 
 update msg model =
@@ -79,7 +84,7 @@ update msg model =
                 availableOptions =
                     filteredOptions model.query
 
-                ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
+                ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage ) =
                     MyAutocomplete.defaultUpdateBehaviour acmsg model.autocomplete availableOptions
 
                 selection' =
@@ -87,8 +92,19 @@ update msg model =
 
                 query' =
                     Maybe.withDefault model.query maybeQuery
+
+                autocompleteMessage' =
+                    [ Cmd.map AutocompleteUpdate autocompleteMessage ]
+
+                fetchMsg =
+                    case maybeQuery of
+                        Just query ->
+                            [ Task.perform FetchDataForAutocomplete FetchDataForAutocomplete (Task.succeed query) ]
+
+                        _ ->
+                            []
             in
-                { model | autocomplete = autocomplete', selection = selection', query = query' } ! [ Cmd.map AutocompleteUpdate autocompleteMessage' ]
+                { model | autocomplete = autocomplete', selection = selection', query = query' } ! (autocompleteMessage' ++ fetchMsg)
 
         AnotherAutocompleteUpdate acmsg ->
             let
@@ -102,6 +118,27 @@ update msg model =
                     Maybe.withDefault model.anotherQuery maybeQuery
             in
                 { model | anotherAutocomplete = autocomplete', anotherQuery = query' } ! [ Cmd.map AnotherAutocompleteUpdate autocompleteMessage' ]
+
+        FetchDataForAutocomplete query ->
+            let
+                cmd =
+                    Task.perform WordFetchFail WordFetchSucceed <| fetchWords query
+            in
+                model ! [ cmd ]
+
+        WordFetchSucceed wordlist ->
+            let
+                a =
+                    Debug.log "wordlist" wordlist
+            in
+                model ! []
+
+        WordFetchFail error ->
+            let
+                a =
+                    Debug.log "wordlist" error
+            in
+                model ! []
 
 
 view : Model -> Html Msg
