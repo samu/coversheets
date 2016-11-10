@@ -85,7 +85,7 @@ getItemFromOptions idx query =
                 "n/a"
 
 
-defaultUpdateBehaviour acmsg acmodel query model =
+defaultUpdateBehaviour acmsg acmodel query =
     let
         ( autocomplete, autocompleteMessage ) =
             MyAutocomplete.update acmsg acmodel
@@ -119,7 +119,7 @@ update msg model =
         AutocompleteUpdate acmsg ->
             let
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
-                    defaultUpdateBehaviour acmsg model.autocomplete model.query model
+                    defaultUpdateBehaviour acmsg model.autocomplete model.query
 
                 selection' =
                     Maybe.withDefault model.selection maybeSelection
@@ -132,7 +132,7 @@ update msg model =
         AnotherAutocompleteUpdate acmsg ->
             let
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
-                    defaultUpdateBehaviour acmsg model.anotherAutocomplete model.anotherQuery model
+                    defaultUpdateBehaviour acmsg model.anotherAutocomplete model.anotherQuery
 
                 query' =
                     Maybe.withDefault model.anotherQuery maybeQuery
