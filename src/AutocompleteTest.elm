@@ -80,35 +80,43 @@ getItemFromOptions idx model =
                 "n/a"
 
 
+defaultUpdateBehaviour acmsg model =
+    let
+        ( autocomplete, autocompleteMessage ) =
+            MyAutocomplete.update acmsg model.autocomplete
+
+        selection =
+            case acmsg of
+                MyAutocomplete.OnHoverExternal idx ->
+                    getItemFromOptions idx model
+
+                _ ->
+                    model.selection
+
+        query =
+            case acmsg of
+                -- MyAutocomplete.OnHoverExternal idx ->
+                --     getItemFromOptions idx
+                MyAutocomplete.OnInputExternal query ->
+                    query
+
+                MyAutocomplete.OnPickExternal idx ->
+                    getItemFromOptions idx model
+
+                _ ->
+                    model.query
+    in
+        ( selection, query, autocomplete, autocompleteMessage )
+
+
 update msg model =
     case msg of
         AutocompleteUpdate acmsg ->
             let
-                ( newAutocomplete, autocompleteMessage ) =
-                    MyAutocomplete.update acmsg model.autocomplete
-
-                selection' =
-                    case acmsg of
-                        MyAutocomplete.OnHoverExternal idx ->
-                            getItemFromOptions idx model
-
-                        _ ->
-                            model.selection
-
-                query' =
-                    case acmsg of
-                        -- MyAutocomplete.OnHoverExternal idx ->
-                        --     getItemFromOptions idx
-                        MyAutocomplete.OnInputExternal query ->
-                            query
-
-                        MyAutocomplete.OnPickExternal idx ->
-                            getItemFromOptions idx model
-
-                        _ ->
-                            model.query
+                ( selection', query', autocomplete', autocompleteMessage' ) =
+                    defaultUpdateBehaviour acmsg model
             in
-                { model | autocomplete = newAutocomplete, selection = selection', query = query' } ! [ Cmd.map AutocompleteUpdate autocompleteMessage ]
+                { model | autocomplete = autocomplete', selection = selection', query = query' } ! [ Cmd.map AutocompleteUpdate autocompleteMessage' ]
 
 
 view : Model -> Html Msg
@@ -116,6 +124,7 @@ view model =
     div [ class "form-horizontal" ]
         [ stylesheet
         , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField (getOptions model) model.query "Le Field" model.autocomplete)
+          -- , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField (getOptions model) model.query "Le Field" model.autocomplete)
           -- , div [] [ text (toString model.autocomplete.currentPosition) ]
         , div [] [ text "selection: ", text model.selection ]
         ]

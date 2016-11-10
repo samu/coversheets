@@ -221,4 +221,4 @@ listGroup options idx =
         options' =
             List.indexedMap createOptionElement options
     in
-        div [ class "list-group", style [ ( "position", "absolute" ) ] ] options'
+        div [ class "list-group", style [ ( "position", "absolute" ), ( "z-index", "1000" ) ] ] options'
