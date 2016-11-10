@@ -23,12 +23,14 @@ main =
 
 init =
     { autocomplete = MyAutocomplete.init
+    , anotherAutocomplete = MyAutocomplete.init
     , query = ""
+    , anotherQuery = ""
     , selection = ""
     }
 
 
-getOptions model =
+filteredOptions query model =
     let
         availableOptions =
             [ "stream"
@@ -53,26 +55,29 @@ getOptions model =
             , "fool"
             ]
     in
-        List.filter (String.contains model.query) availableOptions
+        List.filter (String.contains query) availableOptions
 
 
 type alias Model =
     { autocomplete : MyAutocomplete.Model
+    , anotherAutocomplete : MyAutocomplete.Model
     , query : String
     , selection : String
+    , anotherQuery : String
     }
 
 
 type Msg
     = AutocompleteUpdate MyAutocomplete.Msg
+    | AnotherAutocompleteUpdate MyAutocomplete.Msg
 
 
-getItemFromOptions idx model =
+getItemFromOptions idx query model =
     let
         normalizedIdx =
-            idx % (List.length (getOptions model))
+            idx % (List.length (filteredOptions query model))
     in
-        case Array.fromList (getOptions model) |> Array.get normalizedIdx of
+        case Array.fromList (filteredOptions query model) |> Array.get normalizedIdx of
             Just item ->
                 item
 
@@ -80,33 +85,33 @@ getItemFromOptions idx model =
                 "n/a"
 
 
-defaultUpdateBehaviour acmsg model =
+defaultUpdateBehaviour acmsg acmodel query model =
     let
         ( autocomplete, autocompleteMessage ) =
-            MyAutocomplete.update acmsg model.autocomplete
+            MyAutocomplete.update acmsg acmodel
 
         selection =
             case acmsg of
                 MyAutocomplete.OnHoverExternal idx ->
-                    Just (getItemFromOptions idx model)
+                    Just (getItemFromOptions idx query model)
 
                 _ ->
                     Nothing
 
-        query =
+        query' =
             case acmsg of
                 -- MyAutocomplete.OnHoverExternal idx ->
-                --     Just (getItemFromOptions idx model)
-                MyAutocomplete.OnInputExternal query ->
-                    Just query
+                --     Just (getItemFromOptions idx query model)
+                MyAutocomplete.OnInputExternal query'' ->
+                    Just query''
 
                 MyAutocomplete.OnPickExternal idx ->
-                    Just (getItemFromOptions idx model)
+                    Just (getItemFromOptions idx query model)
 
                 _ ->
                     Nothing
     in
-        ( selection, query, autocomplete, autocompleteMessage )
+        ( selection, query', autocomplete, autocompleteMessage )
 
 
 update msg model =
@@ -114,7 +119,7 @@ update msg model =
         AutocompleteUpdate acmsg ->
             let
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
-                    defaultUpdateBehaviour acmsg model
+                    defaultUpdateBehaviour acmsg model.autocomplete model.query model
 
                 selection' =
                     Maybe.withDefault model.selection maybeSelection
@@ -124,13 +129,23 @@ update msg model =
             in
                 { model | autocomplete = autocomplete', selection = selection', query = query' } ! [ Cmd.map AutocompleteUpdate autocompleteMessage' ]
 
+        AnotherAutocompleteUpdate acmsg ->
+            let
+                ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
+                    defaultUpdateBehaviour acmsg model.anotherAutocomplete model.anotherQuery model
+
+                query' =
+                    Maybe.withDefault model.anotherQuery maybeQuery
+            in
+                { model | anotherAutocomplete = autocomplete', anotherQuery = query' } ! [ Cmd.map AnotherAutocompleteUpdate autocompleteMessage' ]
+
 
 view : Model -> Html Msg
 view model =
     div [ class "form-horizontal" ]
         [ stylesheet
-        , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField (getOptions model) model.query "Le Field" model.autocomplete)
-          -- , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField (getOptions model) model.query "Le Field" model.autocomplete)
+        , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField (filteredOptions model.query model) model.query "Le Field" model.autocomplete)
+        , Html.App.map AnotherAutocompleteUpdate (MyAutocomplete.autocompleteableFormField (filteredOptions model.anotherQuery model) model.anotherQuery "Another query" model.anotherAutocomplete)
           -- , div [] [ text (toString model.autocomplete.currentPosition) ]
         , div [] [ text "selection: ", text model.selection ]
         ]
