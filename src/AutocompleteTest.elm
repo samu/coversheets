@@ -72,12 +72,12 @@ type Msg
     | AnotherAutocompleteUpdate MyAutocomplete.Msg
 
 
-getItemFromOptions idx query =
+getItemFromOptions idx availableOptions =
     let
         normalizedIdx =
-            idx % (List.length (filteredOptions query))
+            idx % (List.length (availableOptions))
     in
-        case Array.fromList (filteredOptions query) |> Array.get normalizedIdx of
+        case Array.fromList availableOptions |> Array.get normalizedIdx of
             Just item ->
                 item
 
@@ -90,10 +90,13 @@ defaultUpdateBehaviour acmsg acmodel query =
         ( autocomplete, autocompleteMessage ) =
             MyAutocomplete.update acmsg acmodel
 
+        availableOptions =
+            filteredOptions query
+
         selection =
             case acmsg of
                 MyAutocomplete.OnHoverExternal idx ->
-                    Just (getItemFromOptions idx query)
+                    Just (getItemFromOptions idx availableOptions)
 
                 _ ->
                     Nothing
@@ -106,7 +109,7 @@ defaultUpdateBehaviour acmsg acmodel query =
                     Just query''
 
                 MyAutocomplete.OnPickExternal idx ->
-                    Just (getItemFromOptions idx query)
+                    Just (getItemFromOptions idx availableOptions)
 
                 _ ->
                     Nothing
