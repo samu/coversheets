@@ -76,13 +76,11 @@ getItemFromOptions idx availableOptions =
     let
         normalizedIdx =
             idx % (List.length (availableOptions))
-    in
-        case Array.fromList availableOptions |> Array.get normalizedIdx of
-            Just item ->
-                item
 
-            Nothing ->
-                "n/a"
+        maybeItem =
+            Array.fromList availableOptions |> Array.get normalizedIdx
+    in
+        Maybe.withDefault "n/a" maybeItem
 
 
 defaultUpdateBehaviour acmsg acmodel availableOptions =
