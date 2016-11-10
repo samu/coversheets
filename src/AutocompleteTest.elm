@@ -30,7 +30,7 @@ init =
     }
 
 
-filteredOptions query model =
+filteredOptions query =
     let
         availableOptions =
             [ "stream"
@@ -75,9 +75,9 @@ type Msg
 getItemFromOptions idx query model =
     let
         normalizedIdx =
-            idx % (List.length (filteredOptions query model))
+            idx % (List.length (filteredOptions query))
     in
-        case Array.fromList (filteredOptions query model) |> Array.get normalizedIdx of
+        case Array.fromList (filteredOptions query) |> Array.get normalizedIdx of
             Just item ->
                 item
 
@@ -144,8 +144,8 @@ view : Model -> Html Msg
 view model =
     div [ class "form-horizontal" ]
         [ stylesheet
-        , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField (filteredOptions model.query model) model.query "Le Field" model.autocomplete)
-        , Html.App.map AnotherAutocompleteUpdate (MyAutocomplete.autocompleteableFormField (filteredOptions model.anotherQuery model) model.anotherQuery "Another query" model.anotherAutocomplete)
+        , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField (filteredOptions model.query) model.query "Le Field" model.autocomplete)
+        , Html.App.map AnotherAutocompleteUpdate (MyAutocomplete.autocompleteableFormField (filteredOptions model.anotherQuery) model.anotherQuery "Another query" model.anotherAutocomplete)
           -- , div [] [ text (toString model.autocomplete.currentPosition) ]
         , div [] [ text "selection: ", text model.selection ]
         ]
