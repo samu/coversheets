@@ -85,13 +85,10 @@ getItemFromOptions idx availableOptions =
                 "n/a"
 
 
-defaultUpdateBehaviour acmsg acmodel query =
+defaultUpdateBehaviour acmsg acmodel availableOptions =
     let
         ( autocomplete, autocompleteMessage ) =
             MyAutocomplete.update acmsg acmodel
-
-        availableOptions =
-            filteredOptions query
 
         selection =
             case acmsg of
@@ -121,8 +118,11 @@ update msg model =
     case msg of
         AutocompleteUpdate acmsg ->
             let
+                availableOptions =
+                    filteredOptions model.query
+
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
-                    defaultUpdateBehaviour acmsg model.autocomplete model.query
+                    defaultUpdateBehaviour acmsg model.autocomplete availableOptions
 
                 selection' =
                     Maybe.withDefault model.selection maybeSelection
@@ -134,8 +134,11 @@ update msg model =
 
         AnotherAutocompleteUpdate acmsg ->
             let
+                availableOptions =
+                    filteredOptions model.anotherQuery
+
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
-                    defaultUpdateBehaviour acmsg model.anotherAutocomplete model.anotherQuery
+                    defaultUpdateBehaviour acmsg model.anotherAutocomplete availableOptions
 
                 query' =
                     Maybe.withDefault model.anotherQuery maybeQuery
