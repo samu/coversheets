@@ -96,15 +96,15 @@ defaultUpdateBehaviour acmsg model =
         query =
             case acmsg of
                 -- MyAutocomplete.OnHoverExternal idx ->
-                --     getItemFromOptions idx
+                --     Just (getItemFromOptions idx model)
                 MyAutocomplete.OnInputExternal query ->
-                    query
+                    Just query
 
                 MyAutocomplete.OnPickExternal idx ->
-                    getItemFromOptions idx model
+                    Just (getItemFromOptions idx model)
 
                 _ ->
-                    model.query
+                    Nothing
     in
         ( selection, query, autocomplete, autocompleteMessage )
 
@@ -113,11 +113,14 @@ update msg model =
     case msg of
         AutocompleteUpdate acmsg ->
             let
-                ( maybeSelection, query', autocomplete', autocompleteMessage' ) =
+                ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
                     defaultUpdateBehaviour acmsg model
 
                 selection' =
                     Maybe.withDefault model.selection maybeSelection
+
+                query' =
+                    Maybe.withDefault model.query maybeQuery
             in
                 { model | autocomplete = autocomplete', selection = selection', query = query' } ! [ Cmd.map AutocompleteUpdate autocompleteMessage' ]
 
