@@ -98,12 +98,12 @@ defaultUpdateBehaviour acmsg acmodel availableOptions =
                 _ ->
                     Nothing
 
-        query' =
+        query =
             case acmsg of
                 -- MyAutocomplete.OnHoverExternal idx ->
                 --     Just (getItemFromOptions idx query)
-                MyAutocomplete.OnInputExternal query'' ->
-                    Just query''
+                MyAutocomplete.OnInputExternal query' ->
+                    Just query'
 
                 MyAutocomplete.OnPickExternal idx ->
                     Just (getItemFromOptions idx availableOptions)
@@ -111,7 +111,7 @@ defaultUpdateBehaviour acmsg acmodel availableOptions =
                 _ ->
                     Nothing
     in
-        ( selection, query', autocomplete, autocompleteMessage )
+        ( selection, query, autocomplete, autocompleteMessage )
 
 
 update msg model =
