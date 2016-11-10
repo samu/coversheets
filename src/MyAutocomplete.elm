@@ -48,9 +48,6 @@ update msg model =
                         _ ->
                             True
 
-                a =
-                    Debug.log "OnInput" 0
-
                 msg =
                     Task.perform OnInputExternal OnInputExternal (Task.succeed string)
             in
@@ -58,12 +55,6 @@ update msg model =
 
         OnKeypress keyCode ->
             let
-                a =
-                    Debug.log "keyCode" keyCode
-
-                b =
-                    Debug.log "OnKeypress" 0
-
                 currentPosition' =
                     case ( model.currentPosition, keyCode ) of
                         ( Nothing, 38 ) ->
