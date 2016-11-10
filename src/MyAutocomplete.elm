@@ -1,4 +1,4 @@
-module MyAutocomplete exposing (Model, Msg(OnInputExternal, OnHoverExternal, OnPickExternal), init, update, autocompleteableFormField)
+module MyAutocomplete exposing (Model, Msg(OnInputExternal, OnHoverExternal, OnPickExternal), init, update, defaultUpdateBehaviour, autocompleteableFormField)
 
 import Html exposing (..)
 import Html.App
@@ -7,6 +7,7 @@ import Html.Events exposing (..)
 import Platform.Sub
 import Json.Decode
 import Task
+import Array
 
 
 type alias Model =
@@ -149,6 +150,46 @@ update msg model =
 
         OnPickExternal idx ->
             model ! []
+
+
+getItemFromOptions idx availableOptions =
+    let
+        normalizedIdx =
+            idx % (List.length (availableOptions))
+
+        maybeItem =
+            Array.fromList availableOptions |> Array.get normalizedIdx
+    in
+        Maybe.withDefault "n/a" maybeItem
+
+
+defaultUpdateBehaviour acmsg acmodel availableOptions =
+    let
+        ( autocomplete, autocompleteMessage ) =
+            update acmsg acmodel
+
+        selection =
+            case acmsg of
+                OnHoverExternal idx ->
+                    Just (getItemFromOptions idx availableOptions)
+
+                _ ->
+                    Nothing
+
+        query =
+            case acmsg of
+                -- OnHoverExternal idx ->
+                --     Just (getItemFromOptions idx query)
+                OnInputExternal query' ->
+                    Just query'
+
+                OnPickExternal idx ->
+                    Just (getItemFromOptions idx availableOptions)
+
+                _ ->
+                    Nothing
+    in
+        ( selection, query, autocomplete, autocompleteMessage )
 
 
 inputClass =

@@ -72,46 +72,6 @@ type Msg
     | AnotherAutocompleteUpdate MyAutocomplete.Msg
 
 
-getItemFromOptions idx availableOptions =
-    let
-        normalizedIdx =
-            idx % (List.length (availableOptions))
-
-        maybeItem =
-            Array.fromList availableOptions |> Array.get normalizedIdx
-    in
-        Maybe.withDefault "n/a" maybeItem
-
-
-defaultUpdateBehaviour acmsg acmodel availableOptions =
-    let
-        ( autocomplete, autocompleteMessage ) =
-            MyAutocomplete.update acmsg acmodel
-
-        selection =
-            case acmsg of
-                MyAutocomplete.OnHoverExternal idx ->
-                    Just (getItemFromOptions idx availableOptions)
-
-                _ ->
-                    Nothing
-
-        query =
-            case acmsg of
-                -- MyAutocomplete.OnHoverExternal idx ->
-                --     Just (getItemFromOptions idx query)
-                MyAutocomplete.OnInputExternal query' ->
-                    Just query'
-
-                MyAutocomplete.OnPickExternal idx ->
-                    Just (getItemFromOptions idx availableOptions)
-
-                _ ->
-                    Nothing
-    in
-        ( selection, query, autocomplete, autocompleteMessage )
-
-
 update msg model =
     case msg of
         AutocompleteUpdate acmsg ->
@@ -120,7 +80,7 @@ update msg model =
                     filteredOptions model.query
 
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
-                    defaultUpdateBehaviour acmsg model.autocomplete availableOptions
+                    MyAutocomplete.defaultUpdateBehaviour acmsg model.autocomplete availableOptions
 
                 selection' =
                     Maybe.withDefault model.selection maybeSelection
@@ -136,7 +96,7 @@ update msg model =
                     filteredOptions model.anotherQuery
 
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
-                    defaultUpdateBehaviour acmsg model.anotherAutocomplete availableOptions
+                    MyAutocomplete.defaultUpdateBehaviour acmsg model.anotherAutocomplete availableOptions
 
                 query' =
                     Maybe.withDefault model.anotherQuery maybeQuery
