@@ -89,7 +89,7 @@ update msg model =
 
                 selection' =
                     case acmsg of
-                        MyAutocomplete.AcOnHoverExternal idx ->
+                        MyAutocomplete.OnHoverExternal idx ->
                             getItemFromOptions idx model
 
                         _ ->
@@ -97,12 +97,12 @@ update msg model =
 
                 query' =
                     case acmsg of
-                        -- MyAutocomplete.AcOnHoverExternal idx ->
+                        -- MyAutocomplete.OnHoverExternal idx ->
                         --     getItemFromOptions idx
-                        MyAutocomplete.AcOnInputExternal query ->
+                        MyAutocomplete.OnInputExternal query ->
                             query
 
-                        MyAutocomplete.AcOnPickExternal idx ->
+                        MyAutocomplete.OnPickExternal idx ->
                             getItemFromOptions idx model
 
                         _ ->

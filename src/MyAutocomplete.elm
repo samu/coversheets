@@ -1,4 +1,4 @@
-module MyAutocomplete exposing (Model, Msg(AcOnInputExternal, AcOnHoverExternal, AcOnPickExternal), init, update, autocompleteableFormField)
+module MyAutocomplete exposing (Model, Msg(OnInputExternal, OnHoverExternal, OnPickExternal), init, update, autocompleteableFormField)
 
 import Html exposing (..)
 import Html.App
@@ -16,16 +16,16 @@ type alias Model =
 
 
 type Msg
-    = AcOnInput String
-    | AcOnInputExternal String
-    | AcOnHoverExternal Int
-    | AcOnPickExternal Int
-    | AcOnKeypress Int
-    | AcOnMouseEnter Int
-    | AcOnClick Int
-    | AcOnEscape
-    | AcOnEnter Int
-    | AcOnBlur
+    = OnInput String
+    | OnInputExternal String
+    | OnHoverExternal Int
+    | OnPickExternal Int
+    | OnKeypress Int
+    | OnMouseEnter Int
+    | OnClick Int
+    | OnEscape
+    | OnEnter Int
+    | OnBlur
 
 
 init =
@@ -37,7 +37,7 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        AcOnInput string ->
+        OnInput string ->
             let
                 show =
                     case string of
@@ -48,29 +48,29 @@ update msg model =
                             True
 
                 a =
-                    Debug.log "AcOnInput" 0
+                    Debug.log "OnInput" 0
 
                 msg =
-                    Task.perform AcOnInputExternal AcOnInputExternal (Task.succeed string)
+                    Task.perform OnInputExternal OnInputExternal (Task.succeed string)
             in
                 { model | show = show, currentPosition = Nothing } ! [ msg ]
 
-        AcOnInputExternal string ->
+        OnInputExternal string ->
             model ! []
 
-        AcOnHoverExternal idx ->
+        OnHoverExternal idx ->
             model ! []
 
-        AcOnPickExternal idx ->
+        OnPickExternal idx ->
             model ! []
 
-        AcOnKeypress keyCode ->
+        OnKeypress keyCode ->
             let
                 a =
                     Debug.log "keyCode" keyCode
 
                 b =
-                    Debug.log "AcOnKeypress" 0
+                    Debug.log "OnKeypress" 0
 
                 currentPosition' =
                     case ( model.currentPosition, keyCode ) of
@@ -92,7 +92,7 @@ update msg model =
                 onEscapeMsg =
                     case keyCode of
                         27 ->
-                            [ Task.perform (always AcOnEscape) (always AcOnEscape) (Task.succeed Nothing) ]
+                            [ Task.perform (always OnEscape) (always OnEscape) (Task.succeed Nothing) ]
 
                         _ ->
                             []
@@ -102,7 +102,7 @@ update msg model =
                         Just idx ->
                             case keyCode of
                                 13 ->
-                                    [ Task.perform AcOnEnter AcOnEnter (Task.succeed idx) ]
+                                    [ Task.perform OnEnter OnEnter (Task.succeed idx) ]
 
                                 _ ->
                                     []
@@ -114,7 +114,7 @@ update msg model =
                     case currentPosition' of
                         Just idx ->
                             if keyCode == 38 || keyCode == 40 then
-                                [ Task.perform AcOnHoverExternal AcOnHoverExternal (Task.succeed idx) ]
+                                [ Task.perform OnHoverExternal OnHoverExternal (Task.succeed idx) ]
                             else
                                 []
 
@@ -123,31 +123,31 @@ update msg model =
             in
                 { model | currentPosition = currentPosition' } ! (onEscapeMsg ++ onHoverMsg ++ onEnterMsg)
 
-        AcOnMouseEnter idx ->
+        OnMouseEnter idx ->
             let
                 msg =
-                    [ Task.perform AcOnHoverExternal AcOnHoverExternal (Task.succeed idx) ]
+                    [ Task.perform OnHoverExternal OnHoverExternal (Task.succeed idx) ]
             in
                 { model | currentPosition = Just idx } ! msg
 
-        AcOnClick idx ->
+        OnClick idx ->
             let
                 msg =
-                    [ Task.perform AcOnPickExternal AcOnPickExternal (Task.succeed idx) ]
+                    [ Task.perform OnPickExternal OnPickExternal (Task.succeed idx) ]
             in
                 { model | currentPosition = Nothing, show = False } ! msg
 
-        AcOnEscape ->
+        OnEscape ->
             { model | currentPosition = Nothing, show = False } ! []
 
-        AcOnEnter idx ->
+        OnEnter idx ->
             let
                 msg =
-                    [ Task.perform AcOnPickExternal AcOnPickExternal (Task.succeed idx) ]
+                    [ Task.perform OnPickExternal OnPickExternal (Task.succeed idx) ]
             in
                 { model | currentPosition = Nothing, show = False } ! msg
 
-        AcOnBlur ->
+        OnBlur ->
             { model | currentPosition = Nothing, show = False } ! []
 
 
@@ -188,13 +188,13 @@ autocompleteableFormField options query name autocompleteModel =
                 div [] []
 
         onInput' =
-            onInput AcOnInput
+            onInput OnInput
 
         onKeyDown' =
-            on "keydown" (Json.Decode.map AcOnKeypress keyCode)
+            on "keydown" (Json.Decode.map OnKeypress keyCode)
 
         onBlur' =
-            onBlur AcOnBlur
+            onBlur OnBlur
 
         html =
             div []
@@ -216,7 +216,7 @@ listGroup options idx =
                     \n -> ( "active", False )
 
         createOptionElement idx' value =
-            a [ onMouseEnter (AcOnMouseEnter idx'), onClick (AcOnClick idx'), classList [ ( "list-group-item", True ), renderActive idx' ] ] [ text value ]
+            a [ onMouseEnter (OnMouseEnter idx'), onClick (OnClick idx'), classList [ ( "list-group-item", True ), renderActive idx' ] ] [ text value ]
 
         options' =
             List.indexedMap createOptionElement options
