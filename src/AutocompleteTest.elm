@@ -29,6 +29,7 @@ init =
     , query = ""
     , anotherQuery = ""
     , selection = ""
+    , wordList = []
     }
 
 
@@ -66,6 +67,7 @@ type alias Model =
     , query : String
     , selection : String
     , anotherQuery : String
+    , wordList : List String
     }
 
 
@@ -126,17 +128,17 @@ update msg model =
             in
                 model ! [ cmd ]
 
-        WordFetchSucceed wordlist ->
+        WordFetchSucceed wordList ->
             let
                 a =
-                    Debug.log "wordlist" wordlist
+                    Debug.log "wordList" wordList
             in
                 model ! []
 
         WordFetchFail error ->
             let
                 a =
-                    Debug.log "wordlist" error
+                    Debug.log "wordList" error
             in
                 model ! []
 
