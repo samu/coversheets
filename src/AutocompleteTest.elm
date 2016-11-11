@@ -33,34 +33,6 @@ init =
     }
 
 
-filteredOptions query =
-    let
-        availableOptions =
-            [ "stream"
-            , "porter"
-            , "convulsion"
-            , "fascinate"
-            , "excavate"
-            , "pollution"
-            , "likely"
-            , "snake"
-            , "present"
-            , "truck"
-            , "dribble"
-            , "cabin"
-            , "reveal"
-            , "available"
-            , "roar"
-            , "manual"
-            , "chauvinist"
-            , "still"
-            , "ice"
-            , "fool"
-            ]
-    in
-        List.filter (String.contains query) availableOptions
-
-
 type alias Model =
     { autocomplete : MyAutocomplete.Model
     , anotherAutocomplete : MyAutocomplete.Model
@@ -84,7 +56,7 @@ update msg model =
         AutocompleteUpdate acmsg ->
             let
                 availableOptions =
-                    filteredOptions model.query
+                    model.wordList
 
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage ) =
                     MyAutocomplete.defaultUpdateBehaviour acmsg model.autocomplete availableOptions
@@ -111,7 +83,7 @@ update msg model =
         AnotherAutocompleteUpdate acmsg ->
             let
                 availableOptions =
-                    filteredOptions model.anotherQuery
+                    model.wordList
 
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
                     MyAutocomplete.defaultUpdateBehaviour acmsg model.anotherAutocomplete availableOptions
@@ -133,7 +105,7 @@ update msg model =
                 a =
                     Debug.log "wordList" wordList
             in
-                model ! []
+                { model | wordList = wordList } ! []
 
         WordFetchFail error ->
             let
@@ -147,8 +119,8 @@ view : Model -> Html Msg
 view model =
     div [ class "form-horizontal" ]
         [ stylesheet
-        , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField (filteredOptions model.query) model.query "Le Field" model.autocomplete)
-        , Html.App.map AnotherAutocompleteUpdate (MyAutocomplete.autocompleteableFormField (filteredOptions model.anotherQuery) model.anotherQuery "Another query" model.anotherAutocomplete)
+        , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField model.wordList model.query "Le Field" model.autocomplete)
+          -- , Html.App.map AnotherAutocompleteUpdate (MyAutocomplete.autocompleteableFormField model.wordList model.anotherQuery "Another query" model.anotherAutocomplete)
           -- , div [] [ text (toString model.autocomplete.currentPosition) ]
         , div [] [ text "selection: ", text model.selection ]
         ]
