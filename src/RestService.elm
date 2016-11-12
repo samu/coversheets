@@ -1,4 +1,4 @@
-module DemoRestApi exposing (fetchWords)
+module RestService exposing (fetchWords)
 
 import Json.Decode as Json exposing (string)
 import Process

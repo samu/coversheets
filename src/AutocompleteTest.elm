@@ -11,7 +11,7 @@ import Task
 import Autocomplete
 import Array
 import String
-import DemoRestApi exposing (..)
+import RestService exposing (..)
 import Debounce
 import Time
 
