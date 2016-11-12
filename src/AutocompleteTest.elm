@@ -8,7 +8,7 @@ import Http
 import Platform.Sub
 import Json.Decode
 import Task
-import MyAutocomplete
+import Autocomplete
 import Array
 import String
 import DemoRestApi exposing (..)
@@ -26,8 +26,8 @@ main =
 
 
 init =
-    { autocomplete = MyAutocomplete.init
-    , anotherAutocomplete = MyAutocomplete.init
+    { autocomplete = Autocomplete.init
+    , anotherAutocomplete = Autocomplete.init
     , query = ""
     , debouncedQuery = Debounce.init (Time.millisecond * 500) ""
     , anotherQuery = ""
@@ -37,8 +37,8 @@ init =
 
 
 type alias Model =
-    { autocomplete : MyAutocomplete.Model
-    , anotherAutocomplete : MyAutocomplete.Model
+    { autocomplete : Autocomplete.Model
+    , anotherAutocomplete : Autocomplete.Model
     , query : String
     , debouncedQuery : Debounce.Model String
     , selection : String
@@ -48,8 +48,8 @@ type alias Model =
 
 
 type Msg
-    = AutocompleteUpdate MyAutocomplete.Msg
-    | AnotherAutocompleteUpdate MyAutocomplete.Msg
+    = AutocompleteUpdate Autocomplete.Msg
+    | AnotherAutocompleteUpdate Autocomplete.Msg
     | FetchDataForAutocomplete String
     | WordFetchSucceed (List String)
     | WordFetchFail Http.Error
@@ -64,7 +64,7 @@ update msg model =
                     model.wordList
 
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage ) =
-                    MyAutocomplete.defaultUpdateBehaviour acmsg model.autocomplete availableOptions
+                    Autocomplete.defaultUpdateBehaviour acmsg model.autocomplete availableOptions
 
                 selection' =
                     Maybe.withDefault model.selection maybeSelection
@@ -102,7 +102,7 @@ update msg model =
                     model.wordList
 
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
-                    MyAutocomplete.defaultUpdateBehaviour acmsg model.anotherAutocomplete availableOptions
+                    Autocomplete.defaultUpdateBehaviour acmsg model.anotherAutocomplete availableOptions
 
                 query' =
                     Maybe.withDefault model.anotherQuery maybeQuery
@@ -142,8 +142,8 @@ view : Model -> Html Msg
 view model =
     div [ class "form-horizontal" ]
         [ stylesheet
-        , Html.App.map AutocompleteUpdate (MyAutocomplete.autocompleteableFormField model.wordList model.query "Le Field" model.autocomplete)
-          -- , Html.App.map AnotherAutocompleteUpdate (MyAutocomplete.autocompleteableFormField model.wordList model.anotherQuery "Another query" model.anotherAutocomplete)
+        , Html.App.map AutocompleteUpdate (Autocomplete.autocompleteableFormField model.wordList model.query "Le Field" model.autocomplete)
+          -- , Html.App.map AnotherAutocompleteUpdate (Autocomplete.autocompleteableFormField model.wordList model.anotherQuery "Another query" model.anotherAutocomplete)
           -- , div [] [ text (toString model.autocomplete.currentPosition) ]
         , div [] [ text "selection: ", text model.selection ]
         ]

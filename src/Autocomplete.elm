@@ -1,4 +1,4 @@
-module MyAutocomplete exposing (Model, Msg(OnInputExternal, OnHoverExternal, OnPickExternal), init, update, defaultUpdateBehaviour, autocompleteableFormField)
+module Autocomplete exposing (Model, Msg(OnInputExternal, OnHoverExternal, OnPickExternal), init, update, defaultUpdateBehaviour, autocompleteableFormField)
 
 import Html exposing (..)
 import Html.App
