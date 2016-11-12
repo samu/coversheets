@@ -18,8 +18,8 @@ import FormUtils
 main =
     let
         model =
-            { sender = "1"
-            , receiver = "2"
+            { sender = "2"
+            , receiver = "1"
             , currentPlugin = Nothing
             , formIsDisabled = True
             , query = ""

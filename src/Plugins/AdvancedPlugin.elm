@@ -7,8 +7,7 @@ import FormUtils
 
 
 type alias Model =
-    { creationDate : String
-    , freeText : String
+    { freeText : String
     }
 
 
@@ -18,8 +17,7 @@ type Msg
 
 init : Model
 init =
-    { creationDate = "abc"
-    , freeText = "blabla"
+    { freeText = "blabla"
     }
 
 
