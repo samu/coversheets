@@ -117,18 +117,10 @@ update msg model =
                 model ! [ cmd ]
 
         WordFetchSucceed wordList ->
-            let
-                a =
-                    Debug.log "wordList" wordList
-            in
-                { model | wordList = wordList } ! []
+            { model | wordList = wordList } ! []
 
         WordFetchFail error ->
-            let
-                a =
-                    Debug.log "wordList" error
-            in
-                model ! []
+            model ! []
 
         DebounceMsg debounceMsg ->
             let
