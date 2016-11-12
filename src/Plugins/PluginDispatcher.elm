@@ -29,17 +29,21 @@ getPlugin config =
             Nothing
 
 
-update : PluginMessage -> Plugin -> Plugin
+update : PluginMessage -> Plugin -> ( Plugin, Cmd PluginMessage )
 update msg plugin =
     case ( msg, plugin ) of
         ( AdvancedPluginMessage msg, AdvancedPlugin model ) ->
-            AdvancedPlugin (AdvancedPlugin.update msg model)
+            let
+                ( advancedPluginModel, advancedPluginMessage ) =
+                    AdvancedPlugin.update msg model
+            in
+                AdvancedPlugin advancedPluginModel ! [ Cmd.map AdvancedPluginMessage advancedPluginMessage ]
 
         ( SimplePluginMessage msg, SimplePlugin model ) ->
-            SimplePlugin (SimplePlugin.update msg model)
+            SimplePlugin (SimplePlugin.update msg model) ! []
 
         _ ->
-            plugin
+            plugin ! []
 
 
 tagMessage : (PluginMessage -> a) -> (b -> PluginMessage) -> b -> a

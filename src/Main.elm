@@ -106,15 +106,19 @@ update msg model =
 
         UpdatePlugin message ->
             let
-                plugin =
+                ( plugin, pluginMessage ) =
                     case model.currentPlugin of
                         Just model ->
-                            Just (PluginDispatcher.update message model)
+                            let
+                                ( plugin', pluginMessage' ) =
+                                    PluginDispatcher.update message model
+                            in
+                                ( Just plugin', Cmd.map UpdatePlugin pluginMessage' )
 
                         Nothing ->
-                            Nothing
+                            ( Nothing, Cmd.none )
             in
-                { model | currentPlugin = plugin } ! []
+                { model | currentPlugin = plugin } ! [ pluginMessage ]
 
         UpdateQuery string ->
             { model | query = string } ! []
