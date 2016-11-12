@@ -13,7 +13,6 @@ import Plugins.SimplePlugin as SimplePlugin
 import Plugins.AdvancedPlugin as AdvancedPlugin
 import Plugins.PluginDispatcher as PluginDispatcher exposing (Plugin, PluginMessage)
 import FormUtils
-import Autocomplete
 
 
 main =
@@ -23,8 +22,6 @@ main =
             , receiver = "2"
             , currentPlugin = Nothing
             , formIsDisabled = True
-            , autoState = Autocomplete.reset updateConfig Autocomplete.empty
-            , showAutocomplete = False
             , query = ""
             }
                 |> updateCurrentPlugin
@@ -60,7 +57,7 @@ initialLookup =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Sub.map SetAutocompleteState Autocomplete.subscription ]
+        []
 
 
 
@@ -72,8 +69,6 @@ type alias Model =
     , receiver : String
     , currentPlugin : Maybe Plugin
     , formIsDisabled : Bool
-    , autoState : Autocomplete.State
-    , showAutocomplete : Bool
     , query : String
     }
 
@@ -89,11 +84,6 @@ type Msg
     | InitialFetchSucceed (List String)
     | InitialFetchFail Http.Error
     | UpdateQuery String
-    | EnterInAutocomplete String
-    | EscapeAutocomplete
-    | SelectPerson String
-    | SetAutocompleteState Autocomplete.Msg
-    | Wrap Bool
 
 
 updateCurrentPlugin : Model -> Model
@@ -127,22 +117,7 @@ update msg model =
                 { model | currentPlugin = plugin } ! []
 
         UpdateQuery string ->
-            let
-                showAutocomplete =
-                    case string of
-                        "" ->
-                            False
-
-                        _ ->
-                            True
-            in
-                { model | query = string, showAutocomplete = showAutocomplete } ! []
-
-        EnterInAutocomplete string ->
-            { model | query = string, showAutocomplete = False } ! []
-
-        EscapeAutocomplete ->
-            { model | showAutocomplete = False } ! []
+            { model | query = string } ! []
 
         InitialFetchSucceed results ->
             { model | formIsDisabled = False } ! []
@@ -150,86 +125,9 @@ update msg model =
         InitialFetchFail _ ->
             model ! []
 
-        SelectPerson id ->
-            model ! []
-
-        SetAutocompleteState autoMsg ->
-            let
-                ( newState, maybeMsg ) =
-                    Autocomplete.update updateConfig autoMsg howManyToShow model.autoState autocompleteEntries
-
-                newModel =
-                    { model | autoState = newState }
-            in
-                case maybeMsg of
-                    Nothing ->
-                        newModel ! []
-
-                    Just updateMsg ->
-                        update updateMsg newModel
-
-        Wrap up ->
-            let
-                resetStrategy =
-                    if up then
-                        Autocomplete.resetToFirstItem
-                    else
-                        Autocomplete.resetToLastItem
-
-                newAutoState =
-                    resetStrategy updateConfig autocompleteEntries howManyToShow model.autoState
-            in
-                { model | autoState = newAutoState } ! []
-
 
 
 -- VIEW
-
-
-updateConfig : Autocomplete.UpdateConfig Msg Person
-updateConfig =
-    Autocomplete.updateConfig
-        { toId = .name
-        , onKeyDown =
-            \code maybeId ->
-                if code == 13 then
-                    Maybe.map EnterInAutocomplete maybeId
-                else if code == 27 then
-                    Just EscapeAutocomplete
-                else
-                    Nothing
-        , onTooLow = Just (Wrap True)
-        , onTooHigh = Just (Wrap False)
-        , onMouseEnter = \_ -> Nothing
-        , onMouseLeave = \_ -> Nothing
-        , onMouseClick = \id -> Just <| SelectPerson id
-        , separateSelections = False
-        }
-
-
-viewConfig : Autocomplete.ViewConfig Person
-viewConfig =
-    let
-        customizedLi keySelected mouseSelected person =
-            { attributes = [ classList [ ( "list-group-item", True ), ( "active", keySelected || mouseSelected ) ] ]
-            , children = [ Html.text person.name ]
-            }
-    in
-        Autocomplete.viewConfig
-            { toId = .name
-            , ul =
-                [ class "list-group" ]
-            , li =
-                customizedLi
-            }
-
-
-type alias Person =
-    { name : String }
-
-
-produceOptions values current =
-    List.map (\v -> option [ selected (current == v), value v ] [ text v ]) values
 
 
 showCurrentPlugin : Model -> Html Msg
@@ -244,6 +142,10 @@ showCurrentPlugin model =
 
             Nothing ->
                 default
+
+
+produceOptions values current =
+    List.map (\v -> option [ selected (current == v), value v ] [ text v ]) values
 
 
 view : Model -> Html Msg
@@ -264,18 +166,9 @@ view model =
             FormUtils.formField "Receiver" receiverSelect []
 
         someOtherInput =
-            let
-                autocompleteMenu =
-                    if model.showAutocomplete then
-                        div [ style [ ( "position", "absolute" ), ( "z-index", "1000" ) ] ]
-                            [ App.map SetAutocompleteState (Autocomplete.view viewConfig howManyToShow model.autoState autocompleteEntries) ]
-                    else
-                        div [] []
-            in
-                div []
-                    [ input [ type' "text", value model.query, class "form-control", placeholder "...", onInput UpdateQuery, onBlur (EscapeAutocomplete) ] []
-                    , autocompleteMenu
-                    ]
+            div []
+                [ input [ type' "text", value model.query, class "form-control", placeholder "...", onInput UpdateQuery ] []
+                ]
 
         someOtherInputField =
             FormUtils.formField "Some Other Input" someOtherInput []
