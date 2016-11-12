@@ -12,6 +12,8 @@ import MyAutocomplete
 import Array
 import String
 import DemoRestApi exposing (..)
+import Debounce
+import Time
 
 
 main =
@@ -27,6 +29,7 @@ init =
     { autocomplete = MyAutocomplete.init
     , anotherAutocomplete = MyAutocomplete.init
     , query = ""
+    , debouncedQuery = Debounce.init (Time.millisecond * 500) ""
     , anotherQuery = ""
     , selection = ""
     , wordList = []
@@ -37,6 +40,7 @@ type alias Model =
     { autocomplete : MyAutocomplete.Model
     , anotherAutocomplete : MyAutocomplete.Model
     , query : String
+    , debouncedQuery : Debounce.Model String
     , selection : String
     , anotherQuery : String
     , wordList : List String
@@ -49,6 +53,7 @@ type Msg
     | FetchDataForAutocomplete String
     | WordFetchSucceed (List String)
     | WordFetchFail Http.Error
+    | DebounceMsg (Debounce.Msg String)
 
 
 update msg model =
@@ -70,15 +75,26 @@ update msg model =
                 autocompleteMessage' =
                     [ Cmd.map AutocompleteUpdate autocompleteMessage ]
 
-                fetchMsg =
+                ( debouncedQuery', debouncerMsg, _ ) =
                     case maybeQuery of
                         Just query ->
-                            [ Task.perform FetchDataForAutocomplete FetchDataForAutocomplete (Task.succeed query) ]
+                            Debounce.update (Debounce.Change query) model.debouncedQuery
 
                         _ ->
+                            ( model.debouncedQuery, Cmd.none, Nothing )
+
+                debouncerMsg' =
+                    [ Cmd.map DebounceMsg debouncerMsg ]
+
+                wordList' =
+                    case maybeQuery of
+                        Just query ->
                             []
+
+                        Nothing ->
+                            model.wordList
             in
-                { model | autocomplete = autocomplete', selection = selection', query = query' } ! (autocompleteMessage' ++ fetchMsg)
+                { model | autocomplete = autocomplete', selection = selection', query = query', debouncedQuery = debouncedQuery', wordList = wordList' } ! (autocompleteMessage' ++ debouncerMsg')
 
         AnotherAutocompleteUpdate acmsg ->
             let
@@ -113,6 +129,21 @@ update msg model =
                     Debug.log "wordList" error
             in
                 model ! []
+
+        DebounceMsg debounceMsg ->
+            let
+                ( debouncedQuery', debounceCmd, debounceMaybeQuery ) =
+                    Debounce.update debounceMsg model.debouncedQuery
+
+                fetchMsg =
+                    case debounceMaybeQuery of
+                        Just query ->
+                            [ Task.perform FetchDataForAutocomplete FetchDataForAutocomplete (Task.succeed query) ]
+
+                        _ ->
+                            []
+            in
+                { model | debouncedQuery = debouncedQuery' } ! ([ Cmd.map DebounceMsg debounceCmd ] ++ fetchMsg)
 
 
 view : Model -> Html Msg
