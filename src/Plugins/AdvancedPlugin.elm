@@ -9,12 +9,16 @@ import RestService exposing (fetchWords)
 
 type alias Model =
     { query : String
-    , debouncedAutocomplete : DebouncedAutocomplete.Model
+    , debouncedAutocomplete : DebouncedAutocomplete.Model Entity
     }
 
 
+type alias Entity =
+    String
+
+
 type Msg
-    = DebouncedAutocompleteUpdate DebouncedAutocomplete.Msg
+    = DebouncedAutocompleteUpdate (DebouncedAutocomplete.Msg Entity)
 
 
 init : Model
@@ -30,7 +34,7 @@ update msg model =
         DebouncedAutocompleteUpdate dacmsg ->
             let
                 ( debouncedAutocomplete', debouncedAutocompleteMsg ) =
-                    DebouncedAutocomplete.update fetchWords dacmsg model.debouncedAutocomplete
+                    DebouncedAutocomplete.update fetchWords identity dacmsg model.debouncedAutocomplete
             in
                 { model
                     | debouncedAutocomplete = debouncedAutocomplete'
@@ -40,4 +44,4 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    App.map DebouncedAutocompleteUpdate (DebouncedAutocomplete.view "Word" model.debouncedAutocomplete)
+    App.map DebouncedAutocompleteUpdate (DebouncedAutocomplete.view "Word" identity model.debouncedAutocomplete)

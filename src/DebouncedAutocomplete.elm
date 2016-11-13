@@ -12,22 +12,22 @@ import Autocomplete
 import Debounce
 
 
-type alias Model =
+type alias Model entity =
     { query : String
     , debouncedQuery : Debounce.Model String
-    , wordList : List String
+    , wordList : List entity
     , autocomplete : Autocomplete.Model
     }
 
 
-type Msg
+type Msg entity
     = AutocompleteUpdate Autocomplete.Msg
     | DebounceUpdate (Debounce.Msg String)
-    | WordFetchSucceed (List String)
+    | WordFetchSucceed (List entity)
     | WordFetchFail Http.Error
 
 
-init : Model
+init : Model entity
 init =
     { query = "blabla"
     , debouncedQuery = Debounce.init (Time.second * 0.5) ""
@@ -45,17 +45,24 @@ debounceQueryChange maybeQuery debouncedQuery =
             ( debouncedQuery, Cmd.none, Nothing )
 
 
-type alias ListFetcher =
-    String -> Task Http.Error (List String)
+type alias ListFetcher entity =
+    String -> Task Http.Error (List entity)
 
 
-update : ListFetcher -> Msg -> Model -> ( Model, Cmd Msg )
-update listFetcher msg model =
+type alias EntityStringFetcher entity =
+    entity -> String
+
+
+update : ListFetcher entity -> EntityStringFetcher entity -> Msg entity -> Model entity -> ( Model entity, Cmd (Msg entity) )
+update listFetcher entityStringFetcher msg model =
     case msg of
         AutocompleteUpdate acmsg ->
             let
+                availableOptions =
+                    List.map entityStringFetcher model.wordList
+
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage ) =
-                    Autocomplete.defaultUpdateBehaviour acmsg model.autocomplete model.wordList
+                    Autocomplete.defaultUpdateBehaviour acmsg model.autocomplete availableOptions
 
                 query' =
                     Maybe.withDefault model.query maybeQuery
@@ -115,6 +122,6 @@ update listFetcher msg model =
             model ! []
 
 
-view : String -> Model -> Html Msg
-view label model =
-    App.map AutocompleteUpdate (Autocomplete.autocompleteableFormField model.wordList model.query label model.autocomplete)
+view : String -> EntityStringFetcher entity -> Model entity -> Html (Msg entity)
+view label entityStringFetcher model =
+    App.map AutocompleteUpdate (Autocomplete.autocompleteableFormField model.wordList entityStringFetcher model.query label model.autocomplete)

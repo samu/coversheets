@@ -199,8 +199,8 @@ formField label' input list =
         )
 
 
-autocompleteableFormField : List String -> String -> String -> Model -> Html Msg
-autocompleteableFormField options query name autocompleteModel =
+autocompleteableFormField : List entity -> (entity -> String) -> String -> String -> Model -> Html Msg
+autocompleteableFormField options entityToString query name autocompleteModel =
     let
         { show } =
             autocompleteModel
@@ -215,7 +215,7 @@ autocompleteableFormField options query name autocompleteModel =
 
         suggestions =
             if show then
-                listGroup options idx
+                listGroup options entityToString idx
             else
                 div [] []
 
@@ -237,7 +237,7 @@ autocompleteableFormField options query name autocompleteModel =
         formField name html []
 
 
-listGroup options idx =
+listGroup options entityToString idx =
     let
         renderActive =
             case idx of
@@ -248,7 +248,7 @@ listGroup options idx =
                     \n -> ( "active", False )
 
         createOptionElement idx' value =
-            a [ onMouseEnter (OnMouseEnter idx'), onClick (OnClick idx'), classList [ ( "list-group-item", True ), renderActive idx' ] ] [ text value ]
+            a [ onMouseEnter (OnMouseEnter idx'), onClick (OnClick idx'), classList [ ( "list-group-item", True ), renderActive idx' ] ] [ text (entityToString value) ]
 
         options' =
             List.indexedMap createOptionElement options
