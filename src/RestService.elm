@@ -1,6 +1,6 @@
-module RestService exposing (fetchWords)
+module RestService exposing (fetchWords, Word)
 
-import Json.Decode as Json exposing (string)
+import Json.Decode as Json exposing (string, (:=))
 import Process
 import Task exposing (Task, andThen)
 import Http
@@ -8,7 +8,12 @@ import Time
 import String
 
 
-fetchWords : String -> Task Http.Error (List String)
+type alias Word =
+    { word : String
+    }
+
+
+fetchWords : String -> Task Http.Error (List Word)
 fetchWords query =
     let
         httpTask =
@@ -18,14 +23,14 @@ fetchWords query =
                 introduceArtificialDelay (Http.get wordsDecoder ("/words.json"))
 
         filterResults result =
-            Task.succeed (List.filter (String.contains query) result)
+            Task.succeed (List.filter (\n -> String.contains query n.word) result)
     in
         httpTask `andThen` filterResults
 
 
-wordsDecoder : Json.Decoder (List String)
+wordsDecoder : Json.Decoder (List Word)
 wordsDecoder =
-    Json.list Json.string
+    Json.list <| Json.object1 Word ("word" := Json.string)
 
 
 introduceArtificialDelay : Task a b -> Task a b

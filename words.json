@@ -1,21 +1,21 @@
-[ "stream"
-, "porter"
-, "convulsion"
-, "fascinate"
-, "excavate"
-, "pollution"
-, "likely"
-, "snake"
-, "present"
-, "truck"
-, "dribble"
-, "cabin"
-, "reveal"
-, "available"
-, "roar"
-, "manual"
-, "chauvinist"
-, "still"
-, "ice"
-, "fool"
+[ {"word" : "stream"}
+, {"word" : "porter"}
+, {"word" : "convulsion"}
+, {"word" : "fascinate"}
+, {"word" : "excavate"}
+, {"word" : "pollution"}
+, {"word" : "likely"}
+, {"word" : "snake"}
+, {"word" : "present"}
+, {"word" : "truck"}
+, {"word" : "dribble"}
+, {"word" : "cabin"}
+, {"word" : "reveal"}
+, {"word" : "available"}
+, {"word" : "roar"}
+, {"word" : "manual"}
+, {"word" : "chauvinist"}
+, {"word" : "still"}
+, {"word" : "ice"}
+, {"word" : "fool"}
 ]

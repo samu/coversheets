@@ -14,11 +14,11 @@ type alias Model =
 
 
 type alias Entity =
-    String
+    RestService.Word
 
 
 entityToString =
-    identity
+    .word
 
 
 type Msg
