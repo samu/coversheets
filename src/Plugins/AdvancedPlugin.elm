@@ -1,51 +1,73 @@
 module Plugins.AdvancedPlugin exposing (Model, Msg, init, view, update)
 
-import Html exposing (Html)
+import Html exposing (Html, div)
 import Html.App as App
 import Http
 import DebouncedAutocomplete
-import RestService exposing (fetchWords)
+import RestService exposing (fetchWords, fetchPeople)
 
 
 type alias Model =
-    { query : String
-    , debouncedAutocomplete : DebouncedAutocomplete.Model Entity
+    { debouncedAutocompleteForWord : DebouncedAutocomplete.Model Word
+    , debouncedAutocompleteForPerson : DebouncedAutocomplete.Model Person
     }
 
 
-type alias Entity =
+type alias Word =
     RestService.Word
 
 
-entityToString =
+type alias Person =
+    RestService.Person
+
+
+wordToString =
     .word
 
 
+personToString =
+    .name
+
+
 type Msg
-    = DebouncedAutocompleteUpdate (DebouncedAutocomplete.Msg Entity)
+    = DebouncedAutocompleteForWordUpdate (DebouncedAutocomplete.Msg Word)
+    | DebouncedAutocompleteForPersonUpdate (DebouncedAutocomplete.Msg Person)
 
 
 init : Model
 init =
-    { query = "blabla"
-    , debouncedAutocomplete = DebouncedAutocomplete.init
+    { debouncedAutocompleteForWord = DebouncedAutocomplete.init
+    , debouncedAutocompleteForPerson = DebouncedAutocomplete.init
     }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        DebouncedAutocompleteUpdate dacmsg ->
+        DebouncedAutocompleteForWordUpdate dacmsg ->
             let
-                ( debouncedAutocomplete', debouncedAutocompleteMsg ) =
-                    DebouncedAutocomplete.update fetchWords entityToString dacmsg model.debouncedAutocomplete
+                ( debouncedAutocompleteForWord', debouncedAutocompleteMsg ) =
+                    DebouncedAutocomplete.update fetchWords wordToString dacmsg model.debouncedAutocompleteForWord
             in
                 { model
-                    | debouncedAutocomplete = debouncedAutocomplete'
+                    | debouncedAutocompleteForWord = debouncedAutocompleteForWord'
                 }
-                    ! [ Cmd.map DebouncedAutocompleteUpdate debouncedAutocompleteMsg ]
+                    ! [ Cmd.map DebouncedAutocompleteForWordUpdate debouncedAutocompleteMsg ]
+
+        DebouncedAutocompleteForPersonUpdate dacmsg ->
+            let
+                ( debouncedAutocompleteForPerson', debouncedAutocompleteMsg ) =
+                    DebouncedAutocomplete.update fetchPeople personToString dacmsg model.debouncedAutocompleteForPerson
+            in
+                { model
+                    | debouncedAutocompleteForPerson = debouncedAutocompleteForPerson'
+                }
+                    ! [ Cmd.map DebouncedAutocompleteForPersonUpdate debouncedAutocompleteMsg ]
 
 
 view : Model -> Html Msg
 view model =
-    App.map DebouncedAutocompleteUpdate (DebouncedAutocomplete.view "Word" entityToString model.debouncedAutocomplete)
+    div []
+        [ App.map DebouncedAutocompleteForWordUpdate (DebouncedAutocomplete.view "Word" wordToString model.debouncedAutocompleteForWord)
+        , App.map DebouncedAutocompleteForPersonUpdate (DebouncedAutocomplete.view "Person" personToString model.debouncedAutocompleteForPerson)
+        ]
