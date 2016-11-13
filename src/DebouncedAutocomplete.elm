@@ -21,8 +21,7 @@ type alias Model =
 
 
 type Msg
-    = Update String
-    | AutocompleteUpdate Autocomplete.Msg
+    = AutocompleteUpdate Autocomplete.Msg
     | DebounceUpdate (Debounce.Msg String)
     | WordFetchSucceed (List String)
     | WordFetchFail Http.Error
@@ -53,9 +52,6 @@ type alias ListFetcher =
 update : ListFetcher -> Msg -> Model -> ( Model, Cmd Msg )
 update listFetcher msg model =
     case msg of
-        Update text ->
-            { model | query = text } ! []
-
         AutocompleteUpdate acmsg ->
             let
                 ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage ) =
