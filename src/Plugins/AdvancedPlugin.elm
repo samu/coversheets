@@ -17,6 +17,10 @@ type alias Entity =
     String
 
 
+entityToString =
+    identity
+
+
 type Msg
     = DebouncedAutocompleteUpdate (DebouncedAutocomplete.Msg Entity)
 
@@ -34,7 +38,7 @@ update msg model =
         DebouncedAutocompleteUpdate dacmsg ->
             let
                 ( debouncedAutocomplete', debouncedAutocompleteMsg ) =
-                    DebouncedAutocomplete.update fetchWords identity dacmsg model.debouncedAutocomplete
+                    DebouncedAutocomplete.update fetchWords entityToString dacmsg model.debouncedAutocomplete
             in
                 { model
                     | debouncedAutocomplete = debouncedAutocomplete'
@@ -44,4 +48,4 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    App.map DebouncedAutocompleteUpdate (DebouncedAutocomplete.view "Word" identity model.debouncedAutocomplete)
+    App.map DebouncedAutocompleteUpdate (DebouncedAutocomplete.view "Word" entityToString model.debouncedAutocomplete)
