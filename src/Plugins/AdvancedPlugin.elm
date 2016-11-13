@@ -32,7 +32,7 @@ type Msg
 init : Model
 init =
     { query = "blabla"
-    , debouncedQuery = Debounce.init (Time.millisecond * 500) ""
+    , debouncedQuery = Debounce.init (Time.second * 0.5) ""
     , wordList = []
     , autocomplete = Autocomplete.init
     }
@@ -69,11 +69,23 @@ update msg model =
 
                 debouncerMsg' =
                     Cmd.map DebounceUpdate debouncerMsg
+
+                wordList' =
+                    case maybeQuery of
+                        Just query ->
+                            if query == "" then
+                                []
+                            else
+                                model.wordList
+
+                        _ ->
+                            model.wordList
             in
                 { model
                     | query = query'
                     , debouncedQuery = debouncedQuery'
                     , autocomplete = autocomplete'
+                    , wordList = wordList'
                 }
                     ! [ autocompleteMessage', debouncerMsg' ]
 

@@ -12,7 +12,10 @@ fetchWords : String -> Task Http.Error (List String)
 fetchWords query =
     let
         httpTask =
-            introduceArtificialDelay (Http.get wordsDecoder ("/words.json"))
+            if query == "" then
+                Task.succeed []
+            else
+                introduceArtificialDelay (Http.get wordsDecoder ("/words.json"))
 
         filterResults result =
             Task.succeed (List.filter (String.contains query) result)
@@ -27,5 +30,5 @@ wordsDecoder =
 
 introduceArtificialDelay : Task a b -> Task a b
 introduceArtificialDelay task =
-    Process.sleep (0.5 * Time.second)
+    Process.sleep (Time.second * 0.1)
         `andThen` \() -> task
