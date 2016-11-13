@@ -6,11 +6,10 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 import Http
 import Time
-import Task
+import Task exposing (Task)
 import FormUtils
 import Autocomplete
 import Debounce
-import RestService exposing (fetchWords)
 
 
 type alias Model =
@@ -47,8 +46,12 @@ debounceQueryChange maybeQuery debouncedQuery =
             ( debouncedQuery, Cmd.none, Nothing )
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+type alias ListFetcher =
+    String -> Task Http.Error (List String)
+
+
+update : ListFetcher -> Msg -> Model -> ( Model, Cmd Msg )
+update listFetcher msg model =
     case msg of
         Update text ->
             { model | query = text } ! []
@@ -97,7 +100,7 @@ update msg model =
                 fetchMsg =
                     case debounceMaybeQuery of
                         Just query ->
-                            [ Task.perform WordFetchFail WordFetchSucceed <| fetchWords query ]
+                            [ Task.perform WordFetchFail WordFetchSucceed <| listFetcher query ]
 
                         _ ->
                             []
@@ -116,10 +119,6 @@ update msg model =
             model ! []
 
 
-view : Model -> Html Msg
-view model =
-    let
-        formField =
-            App.map AutocompleteUpdate (Autocomplete.autocompleteableFormField model.wordList model.query "Le Field" model.autocomplete)
-    in
-        formField
+view : String -> Model -> Html Msg
+view label model =
+    App.map AutocompleteUpdate (Autocomplete.autocompleteableFormField model.wordList model.query label model.autocomplete)

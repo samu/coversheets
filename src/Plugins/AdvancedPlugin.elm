@@ -30,7 +30,7 @@ update msg model =
         DebouncedAutocompleteUpdate dacmsg ->
             let
                 ( debouncedAutocomplete', debouncedAutocompleteMsg ) =
-                    DebouncedAutocomplete.update dacmsg model.debouncedAutocomplete
+                    DebouncedAutocomplete.update fetchWords dacmsg model.debouncedAutocomplete
             in
                 { model
                     | debouncedAutocomplete = debouncedAutocomplete'
@@ -40,4 +40,4 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    App.map DebouncedAutocompleteUpdate (DebouncedAutocomplete.view model.debouncedAutocomplete)
+    App.map DebouncedAutocompleteUpdate (DebouncedAutocomplete.view "Word" model.debouncedAutocomplete)
