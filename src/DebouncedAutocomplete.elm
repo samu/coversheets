@@ -1,7 +1,6 @@
 module DebouncedAutocomplete exposing (Model, Msg, init, view, update)
 
 import Html exposing (..)
-import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 import Http
@@ -23,8 +22,7 @@ type alias Model entity =
 type Msg entity
     = AutocompleteUpdate Autocomplete.Msg
     | DebounceUpdate (Debounce.Msg String)
-    | WordFetchSucceed (List entity)
-    | WordFetchFail Http.Error
+    | WordFetch (Result Http.Error (List entity))
 
 
 init : Model entity
@@ -61,22 +59,22 @@ update listFetcher entityStringFetcher msg model =
                 availableOptions =
                     List.map entityStringFetcher model.wordList
 
-                ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage ) =
+                ( maybeSelection, maybeQuery, autocomplete_, autocompleteMessage ) =
                     Autocomplete.defaultUpdateBehaviour acmsg model.autocomplete availableOptions
 
-                query' =
+                query_ =
                     Maybe.withDefault model.query maybeQuery
 
-                ( debouncedQuery', debouncerMsg, _ ) =
+                ( debouncedQuery_, debouncerMsg, _ ) =
                     debounceQueryChange maybeQuery model.debouncedQuery
 
-                autocompleteMessage' =
+                autocompleteMessage_ =
                     Cmd.map AutocompleteUpdate autocompleteMessage
 
-                debouncerMsg' =
+                debouncerMsg_ =
                     Cmd.map DebounceUpdate debouncerMsg
 
-                wordList' =
+                wordList_ =
                     case maybeQuery of
                         Just query ->
                             if query == "" then
@@ -88,40 +86,40 @@ update listFetcher entityStringFetcher msg model =
                             model.wordList
             in
                 { model
-                    | query = query'
-                    , debouncedQuery = debouncedQuery'
-                    , autocomplete = autocomplete'
-                    , wordList = wordList'
+                    | query = query_
+                    , debouncedQuery = debouncedQuery_
+                    , autocomplete = autocomplete_
+                    , wordList = wordList_
                 }
-                    ! [ autocompleteMessage', debouncerMsg' ]
+                    ! [ autocompleteMessage_, debouncerMsg_ ]
 
         DebounceUpdate debounceMsg ->
             let
-                ( debouncedQuery', debounceCmd, debounceMaybeQuery ) =
+                ( debouncedQuery_, debounceCmd, debounceMaybeQuery ) =
                     Debounce.update debounceMsg model.debouncedQuery
 
                 fetchMsg =
                     case debounceMaybeQuery of
                         Just query ->
-                            [ Task.perform WordFetchFail WordFetchSucceed <| listFetcher query ]
+                            [ Task.attempt WordFetch <| listFetcher query ]
 
                         _ ->
                             []
             in
                 { model
-                    | debouncedQuery = debouncedQuery'
+                    | debouncedQuery = debouncedQuery_
                 }
                     ! ([ Cmd.map DebounceUpdate debounceCmd ]
                         ++ fetchMsg
                       )
 
-        WordFetchSucceed wordList ->
+        WordFetch (Ok wordList) ->
             { model | wordList = Debug.log "wordList" wordList } ! []
 
-        WordFetchFail error ->
+        WordFetch (Err _) ->
             model ! []
 
 
 view : String -> EntityStringFetcher entity -> Model entity -> Html (Msg entity)
 view label entityStringFetcher model =
-    App.map AutocompleteUpdate (Autocomplete.autocompleteableFormField model.wordList entityStringFetcher model.query label model.autocomplete)
+    Html.map AutocompleteUpdate (Autocomplete.autocompleteableFormField model.wordList entityStringFetcher model.query label model.autocomplete)

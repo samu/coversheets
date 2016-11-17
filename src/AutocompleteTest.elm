@@ -63,19 +63,19 @@ update msg model =
                 availableOptions =
                     model.wordList
 
-                ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage ) =
+                ( maybeSelection, maybeQuery, autocomplete_, autocompleteMessage ) =
                     Autocomplete.defaultUpdateBehaviour acmsg model.autocomplete availableOptions
 
-                selection' =
+                selection_ =
                     Maybe.withDefault model.selection maybeSelection
 
-                query' =
+                query_ =
                     Maybe.withDefault model.query maybeQuery
 
-                autocompleteMessage' =
+                autocompleteMessage_ =
                     [ Cmd.map AutocompleteUpdate autocompleteMessage ]
 
-                ( debouncedQuery', debouncerMsg, _ ) =
+                ( debouncedQuery_, debouncerMsg, _ ) =
                     case maybeQuery of
                         Just query ->
                             Debounce.update (Debounce.Change query) model.debouncedQuery
@@ -83,10 +83,10 @@ update msg model =
                         _ ->
                             ( model.debouncedQuery, Cmd.none, Nothing )
 
-                debouncerMsg' =
+                debouncerMsg_ =
                     [ Cmd.map DebounceMsg debouncerMsg ]
 
-                wordList' =
+                wordList_ =
                     case maybeQuery of
                         Just query ->
                             []
@@ -94,20 +94,20 @@ update msg model =
                         Nothing ->
                             model.wordList
             in
-                { model | autocomplete = autocomplete', selection = selection', query = query', debouncedQuery = debouncedQuery', wordList = wordList' } ! (autocompleteMessage' ++ debouncerMsg')
+                { model | autocomplete = autocomplete_, selection = selection_, query = query_, debouncedQuery = debouncedQuery_, wordList = wordList_ } ! (autocompleteMessage_ ++ debouncerMsg_)
 
         AnotherAutocompleteUpdate acmsg ->
             let
                 availableOptions =
                     model.wordList
 
-                ( maybeSelection, maybeQuery, autocomplete', autocompleteMessage' ) =
+                ( maybeSelection, maybeQuery, autocomplete_, autocompleteMessage_ ) =
                     Autocomplete.defaultUpdateBehaviour acmsg model.anotherAutocomplete availableOptions
 
-                query' =
+                query_ =
                     Maybe.withDefault model.anotherQuery maybeQuery
             in
-                { model | anotherAutocomplete = autocomplete', anotherQuery = query' } ! [ Cmd.map AnotherAutocompleteUpdate autocompleteMessage' ]
+                { model | anotherAutocomplete = autocomplete_, anotherQuery = query_ } ! [ Cmd.map AnotherAutocompleteUpdate autocompleteMessage_ ]
 
         FetchDataForAutocomplete query ->
             let
@@ -124,7 +124,7 @@ update msg model =
 
         DebounceMsg debounceMsg ->
             let
-                ( debouncedQuery', debounceCmd, debounceMaybeQuery ) =
+                ( debouncedQuery_, debounceCmd, debounceMaybeQuery ) =
                     Debounce.update debounceMsg model.debouncedQuery
 
                 fetchMsg =
@@ -135,7 +135,7 @@ update msg model =
                         _ ->
                             []
             in
-                { model | debouncedQuery = debouncedQuery' } ! ([ Cmd.map DebounceMsg debounceCmd ] ++ fetchMsg)
+                { model | debouncedQuery = debouncedQuery_ } ! ([ Cmd.map DebounceMsg debounceCmd ] ++ fetchMsg)
 
 
 view : Model -> Html Msg

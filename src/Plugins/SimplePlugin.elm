@@ -38,7 +38,7 @@ view : Model -> Html Msg
 view model =
     let
         inputField =
-            input [ type' "text", class "form-control", placeholder "Enter a document type", onInput UpdateDocumentType ] []
+            input [ type_ "text", class "form-control", placeholder "Enter a document type", onInput UpdateDocumentType ] []
 
         plaintextLabel =
             text model.documentType

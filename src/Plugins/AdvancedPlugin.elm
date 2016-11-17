@@ -1,7 +1,6 @@
 module Plugins.AdvancedPlugin exposing (Model, Msg, init, view, update)
 
 import Html exposing (Html, div)
-import Html.App as App
 import Http
 import DebouncedAutocomplete
 import RestService exposing (fetchWords, fetchPeople)
@@ -46,21 +45,21 @@ update msg model =
     case msg of
         DebouncedAutocompleteForWordUpdate dacmsg ->
             let
-                ( debouncedAutocompleteForWord', debouncedAutocompleteMsg ) =
+                ( debouncedAutocompleteForWord_, debouncedAutocompleteMsg ) =
                     DebouncedAutocomplete.update fetchWords wordToString dacmsg model.debouncedAutocompleteForWord
             in
                 { model
-                    | debouncedAutocompleteForWord = debouncedAutocompleteForWord'
+                    | debouncedAutocompleteForWord = debouncedAutocompleteForWord_
                 }
                     ! [ Cmd.map DebouncedAutocompleteForWordUpdate debouncedAutocompleteMsg ]
 
         DebouncedAutocompleteForPersonUpdate dacmsg ->
             let
-                ( debouncedAutocompleteForPerson', debouncedAutocompleteMsg ) =
+                ( debouncedAutocompleteForPerson_, debouncedAutocompleteMsg ) =
                     DebouncedAutocomplete.update fetchPeople personToString dacmsg model.debouncedAutocompleteForPerson
             in
                 { model
-                    | debouncedAutocompleteForPerson = debouncedAutocompleteForPerson'
+                    | debouncedAutocompleteForPerson = debouncedAutocompleteForPerson_
                 }
                     ! [ Cmd.map DebouncedAutocompleteForPersonUpdate debouncedAutocompleteMsg ]
 
@@ -68,6 +67,6 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ App.map DebouncedAutocompleteForWordUpdate (DebouncedAutocomplete.view "Word" wordToString model.debouncedAutocompleteForWord)
-        , App.map DebouncedAutocompleteForPersonUpdate (DebouncedAutocomplete.view "Person" personToString model.debouncedAutocompleteForPerson)
+        [ Html.map DebouncedAutocompleteForWordUpdate (DebouncedAutocomplete.view "Word" wordToString model.debouncedAutocompleteForWord)
+        , Html.map DebouncedAutocompleteForPersonUpdate (DebouncedAutocomplete.view "Person" personToString model.debouncedAutocompleteForPerson)
         ]

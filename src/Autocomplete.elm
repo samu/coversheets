@@ -1,7 +1,6 @@
 module Autocomplete exposing (Model, Msg(OnInputExternal, OnHoverExternal, OnPickExternal), init, update, defaultUpdateBehaviour, autocompleteableFormField)
 
 import Html exposing (..)
-import Html.App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Platform.Sub
@@ -49,13 +48,13 @@ update msg model =
                             True
 
                 msg =
-                    Task.perform OnInputExternal OnInputExternal (Task.succeed string)
+                    Task.perform OnInputExternal (Task.succeed string)
             in
                 { model | show = show, currentPosition = Nothing } ! [ msg ]
 
         OnKeypress keyCode ->
             let
-                currentPosition' =
+                currentPosition_ =
                     case ( model.currentPosition, keyCode ) of
                         ( Nothing, 38 ) ->
                             Just -1
@@ -75,17 +74,17 @@ update msg model =
                 onEscapeMsg =
                     case keyCode of
                         27 ->
-                            [ Task.perform (always OnEscape) (always OnEscape) (Task.succeed Nothing) ]
+                            [ Task.perform (always OnEscape) (Task.succeed Nothing) ]
 
                         _ ->
                             []
 
                 onEnterMsg =
-                    case currentPosition' of
+                    case currentPosition_ of
                         Just idx ->
                             case keyCode of
                                 13 ->
-                                    [ Task.perform OnEnter OnEnter (Task.succeed idx) ]
+                                    [ Task.perform OnEnter (Task.succeed idx) ]
 
                                 _ ->
                                     []
@@ -94,29 +93,29 @@ update msg model =
                             []
 
                 onHoverMsg =
-                    case currentPosition' of
+                    case currentPosition_ of
                         Just idx ->
                             if keyCode == 38 || keyCode == 40 then
-                                [ Task.perform OnHoverExternal OnHoverExternal (Task.succeed idx) ]
+                                [ Task.perform OnHoverExternal (Task.succeed idx) ]
                             else
                                 []
 
                         Nothing ->
                             []
             in
-                { model | currentPosition = currentPosition' } ! (onEscapeMsg ++ onHoverMsg ++ onEnterMsg)
+                { model | currentPosition = currentPosition_ } ! (onEscapeMsg ++ onHoverMsg ++ onEnterMsg)
 
         OnMouseEnter idx ->
             let
                 msg =
-                    [ Task.perform OnHoverExternal OnHoverExternal (Task.succeed idx) ]
+                    [ Task.perform OnHoverExternal (Task.succeed idx) ]
             in
                 { model | currentPosition = Just idx } ! msg
 
         OnClick idx ->
             let
                 msg =
-                    [ Task.perform OnPickExternal OnPickExternal (Task.succeed idx) ]
+                    [ Task.perform OnPickExternal (Task.succeed idx) ]
             in
                 { model | currentPosition = Nothing, show = False } ! msg
 
@@ -126,7 +125,7 @@ update msg model =
         OnEnter idx ->
             let
                 msg =
-                    [ Task.perform OnPickExternal OnPickExternal (Task.succeed idx) ]
+                    [ Task.perform OnPickExternal (Task.succeed idx) ]
             in
                 { model | currentPosition = Nothing, show = False } ! msg
 
@@ -171,8 +170,8 @@ defaultUpdateBehaviour acmsg acmodel availableOptions =
             case acmsg of
                 -- OnHoverExternal idx ->
                 --     Just (getItemFromOptions idx query)
-                OnInputExternal query' ->
-                    Just query'
+                OnInputExternal query_ ->
+                    Just query_
 
                 OnPickExternal idx ->
                     Just (getItemFromOptions idx availableOptions)
@@ -188,10 +187,10 @@ inputClass =
 
 
 formField : String -> Html a -> List (Html a) -> Html a
-formField label' input list =
+formField label_ input list =
     div [ class "form-group" ]
-        ([ label [ for label', class "control-label col-sm-2" ]
-            [ text label' ]
+        ([ label [ for label_, class "control-label col-sm-2" ]
+            [ text label_ ]
          , div [ class "col-sm-4" ]
             [ input ]
          ]
@@ -219,18 +218,18 @@ autocompleteableFormField options entityToString query name autocompleteModel =
             else
                 div [] []
 
-        onInput' =
+        onInput_ =
             onInput OnInput
 
-        onKeyDown' =
+        onKeyDown_ =
             on "keydown" (Json.Decode.map OnKeypress keyCode)
 
-        onBlur' =
+        onBlur_ =
             onBlur OnBlur
 
         html =
             div []
-                [ input [ type' "text", value query, inputClass, onInput', onKeyDown', onBlur' ] []
+                [ input [ type_ "text", value query, inputClass, onInput_, onKeyDown_, onBlur_ ] []
                 , suggestions
                 ]
     in
@@ -247,10 +246,10 @@ listGroup options entityToString idx =
                 Nothing ->
                     \n -> ( "active", False )
 
-        createOptionElement idx' value =
-            a [ onMouseEnter (OnMouseEnter idx'), onClick (OnClick idx'), classList [ ( "list-group-item", True ), renderActive idx' ] ] [ text (entityToString value) ]
+        createOptionElement idx_ value =
+            a [ onMouseEnter (OnMouseEnter idx_), onClick (OnClick idx_), classList [ ( "list-group-item", True ), renderActive idx_ ] ] [ text (entityToString value) ]
 
-        options' =
+        options_ =
             List.indexedMap createOptionElement options
     in
-        div [ class "list-group", style [ ( "position", "absolute" ), ( "z-index", "1000" ) ] ] options'
+        div [ class "list-group", style [ ( "position", "absolute" ), ( "z-index", "1000" ) ] ] options_

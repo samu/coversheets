@@ -1,6 +1,6 @@
 module RestService exposing (fetchWords, fetchPeople, Word, Person)
 
-import Json.Decode as Json exposing (string, (:=))
+import Json.Decode as Json exposing (string, field)
 import Process
 import Task exposing (Task, andThen)
 import Http
@@ -11,7 +11,7 @@ import String
 introduceArtificialDelay : Task a b -> Task a b
 introduceArtificialDelay task =
     Process.sleep (Time.second * 0.1)
-        `andThen` \() -> task
+        |> andThen (\() -> task)
 
 
 type alias Word =
@@ -26,17 +26,17 @@ fetchWords query =
             if query == "" then
                 Task.succeed []
             else
-                introduceArtificialDelay (Http.get wordsDecoder ("/words.json"))
+                introduceArtificialDelay <| Http.toTask (Http.get "/words.json" wordsDecoder)
 
         filterResults result =
             Task.succeed (List.filter (\n -> String.contains query n.word) result)
     in
-        httpTask `andThen` filterResults
+        httpTask |> andThen filterResults
 
 
 wordsDecoder : Json.Decoder (List Word)
 wordsDecoder =
-    Json.list <| Json.object1 Word ("word" := Json.string)
+    Json.list <| Json.map Word (field "word" Json.string)
 
 
 type alias Person =
@@ -52,14 +52,14 @@ fetchPeople query =
             if query == "" then
                 Task.succeed []
             else
-                introduceArtificialDelay (Http.get peopleDecoder ("/people.json"))
+                introduceArtificialDelay <| Http.toTask (Http.get "/people.json" peopleDecoder)
 
         filterResults result =
             Task.succeed (List.filter (\n -> String.contains query n.name) result)
     in
-        httpTask `andThen` filterResults
+        httpTask |> andThen filterResults
 
 
 peopleDecoder : Json.Decoder (List Person)
 peopleDecoder =
-    Json.list <| Json.object2 Person ("name" := Json.string) ("email" := Json.string)
+    Json.list <| Json.map2 Person (field "name" Json.string) (field "email" Json.string)

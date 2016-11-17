@@ -1,7 +1,6 @@
 module Plugins.PluginDispatcher exposing (..)
 
 import Html exposing (..)
-import Html.App as App
 import Plugins.SimplePlugin as SimplePlugin
 import Plugins.AdvancedPlugin as AdvancedPlugin
 
@@ -55,7 +54,7 @@ view : (PluginMessage -> a) -> Plugin -> Html a
 view parentMsg plugin =
     case plugin of
         SimplePlugin data ->
-            App.map (tagMessage parentMsg SimplePluginMessage) (SimplePlugin.view data)
+            Html.map (tagMessage parentMsg SimplePluginMessage) (SimplePlugin.view data)
 
         AdvancedPlugin data ->
-            App.map (tagMessage parentMsg AdvancedPluginMessage) (AdvancedPlugin.view data)
+            Html.map (tagMessage parentMsg AdvancedPluginMessage) (AdvancedPlugin.view data)

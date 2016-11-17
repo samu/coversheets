@@ -1,14 +1,13 @@
 module Main exposing (..)
 
 import Html exposing (..)
-import Html.App as App exposing (program)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on, onInput, onBlur)
-import Http
+import Http exposing (Request)
 import Task exposing (Task, andThen)
 import Process
 import Time
-import Json.Decode as Json exposing (object1, string, (:=))
+import Json.Decode as Json exposing (string, field)
 import Plugins.SimplePlugin as SimplePlugin
 import Plugins.AdvancedPlugin as AdvancedPlugin
 import Plugins.PluginDispatcher as PluginDispatcher exposing (Plugin, PluginMessage)
@@ -26,7 +25,7 @@ main =
             }
                 |> updateCurrentPlugin
     in
-        App.program
+        Html.program
             { init = ( model, initialLookup )
             , view = view
             , update = update
@@ -36,22 +35,22 @@ main =
 
 doLookup : Task Http.Error (List String)
 doLookup =
-    Http.get places ("/data.json")
+    Http.toTask (Http.get "/data.json" places)
 
 
 places : Json.Decoder (List String)
 places =
-    Json.list ("name" := Json.string)
+    Json.list (field "name" Json.string)
 
 
 introduceArtificialDelay : Task a b -> Task a b
 introduceArtificialDelay task =
     Process.sleep (0.5 * Time.second)
-        `andThen` \() -> task
+        |> andThen (\() -> task)
 
 
 initialLookup =
-    Task.perform InitialFetchFail InitialFetchSucceed <| introduceArtificialDelay doLookup
+    Task.attempt InitialFetch <| introduceArtificialDelay doLookup
 
 
 subscriptions : Model -> Sub Msg
@@ -81,8 +80,7 @@ type Msg
     = UpdateSender String
     | UpdateReceiver String
     | UpdatePlugin PluginMessage
-    | InitialFetchSucceed (List String)
-    | InitialFetchFail Http.Error
+    | InitialFetch (Result Http.Error (List String))
     | UpdateQuery String
 
 
@@ -110,10 +108,10 @@ update msg model =
                     case model.currentPlugin of
                         Just model ->
                             let
-                                ( plugin', pluginMessage' ) =
+                                ( plugin_, pluginMessage_ ) =
                                     PluginDispatcher.update message model
                             in
-                                ( Just plugin', Cmd.map UpdatePlugin pluginMessage' )
+                                ( Just plugin_, Cmd.map UpdatePlugin pluginMessage_ )
 
                         Nothing ->
                             ( Nothing, Cmd.none )
@@ -123,11 +121,11 @@ update msg model =
         UpdateQuery string ->
             { model | query = string } ! []
 
-        InitialFetchSucceed results ->
+        InitialFetch (Ok results) ->
             { model | formIsDisabled = False } ! []
 
-        InitialFetchFail _ ->
-            model ! []
+        InitialFetch (Err _) ->
+            { model | formIsDisabled = False } ! []
 
 
 
@@ -171,7 +169,7 @@ view model =
 
         someOtherInput =
             div []
-                [ input [ type' "text", value model.query, class "form-control", placeholder "...", onInput UpdateQuery ] []
+                [ input [ type_ "text", value model.query, class "form-control", placeholder "...", onInput UpdateQuery ] []
                 ]
 
         someOtherInputField =
@@ -180,7 +178,7 @@ view model =
         yetAnotherInputField =
             let
                 field =
-                    input [ type' "text", class "form-control", placeholder "..." ] []
+                    input [ type_ "text", class "form-control", placeholder "..." ] []
             in
                 FormUtils.formField "Yet Another Input" field []
 
@@ -201,7 +199,7 @@ view model =
 
 targetValue : (String -> Msg) -> Json.Decoder Msg
 targetValue msg =
-    object1 msg ("target" := (object1 identity ("value" := string)))
+    Json.map msg (field "target" (Json.map identity (field "value" string)))
 
 
 stylesheet =
